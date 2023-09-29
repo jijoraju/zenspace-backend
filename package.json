@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node --experimental-specifier-resolution=node --loader ts-node/esm bin/www.ts",
-    "build": "tsc",
+    "build": "./node_modules/.bin/tsc",
     "start:prod": "node dist/bin/www.js",
     "lint": "eslint . --ext .ts",
     "postinstall": "tsc",
