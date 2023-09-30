@@ -4,7 +4,20 @@
   "controllerPathGlobs": ["controllers/**/*.ts"],
   "spec": {
     "outputDirectory": "dist",
-    "specVersion": 3
+    "specVersion": 3,
+    "specMerging": "recursive",
+    "spec": {
+      "info": {
+        "title": "Zenspace Backend API",
+        "version": "1.0.0"
+      },
+      "servers": [
+        {
+          "url": "http://localhost:4000",
+          "description": "Backend api application for zenspace api"
+        }
+      ]
+    }
   },
   "routes": {
     "routesDir": "routes"
