@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -14,55 +14,55 @@ model UserType {
 }
 
 model User {
-  user_id          Int           @id @default(autoincrement())
-  first_name       String
-  last_name        String
-  email            String        @unique
-  password         String
-  mobile           String?        @unique
-  profile_picture  String?
-  join_date        DateTime      @default(now())
-  user_type_id     Int
-  bookings         Booking[]
-  userPromotions   UserPromotion[]
-  userType         UserType      @relation(fields: [user_type_id], references: [type_id])
+  user_id         Int             @id @default(autoincrement())
+  first_name      String
+  last_name       String
+  email           String          @unique
+  password        String
+  mobile          String?         @unique
+  profile_picture String?
+  join_date       DateTime        @default(now())
+  user_type_id    Int
+  bookings        Booking[]
+  userPromotions  UserPromotion[]
+  userType        UserType        @relation(fields: [user_type_id], references: [type_id])
 }
 
 model Workspace {
-  workspace_id       Int               @id @default(autoincrement())
-  name               String
-  description        String
-  address            String
-  workspace_type     String
-  price_per_hour     Float
-  price_per_day      Float
-  no_of_spaces       Int
-  workspacePhotos    WorkspacePhoto[]
-  reviews            Review[]
-  bookings           Booking[]
-  workspaceAmenties  WorkspaceAmenities[]
+  workspace_id      Int                  @id @default(autoincrement())
+  name              String
+  description       String
+  address           String
+  workspace_type    String
+  price_per_hour    Float
+  price_per_day     Float
+  no_of_spaces      Int
+  workspacePhotos   WorkspacePhoto[]
+  reviews           Review[]
+  bookings          Booking[]
+  workspaceAmenties WorkspaceAmenities[]
 }
 
 model WorkspacePhoto {
-  photo_id       Int       @id @default(autoincrement())
-  photo_url      String
-  workspace_id   Int
-  workspace      Workspace @relation(fields: [workspace_id], references: [workspace_id])
+  photo_id     Int       @id @default(autoincrement())
+  photo_url    String
+  workspace_id Int
+  workspace    Workspace @relation(fields: [workspace_id], references: [workspace_id])
 }
 
 model Review {
-  review_id     Int       @id @default(autoincrement())
-  rating        Int
-  comments      String?
-  review_date   DateTime  @default(now())
-  workspace_id  Int
-  workspace     Workspace @relation(fields: [workspace_id], references: [workspace_id])
+  review_id    Int       @id @default(autoincrement())
+  rating       Int
+  comments     String?
+  review_date  DateTime  @default(now())
+  workspace_id Int
+  workspace    Workspace @relation(fields: [workspace_id], references: [workspace_id])
 }
 
 model Payment {
-  payment_id     Int       @id @default(autoincrement())
+  payment_id     Int            @id @default(autoincrement())
   amount         Float?
-  payment_date   DateTime  @default(now())
+  payment_date   DateTime       @default(now())
   payment_method PaymentMethod?
   card_id        Int
   bookings       Booking[]
@@ -74,33 +74,33 @@ enum PaymentMethod {
 }
 
 model Booking {
-  booking_id    Int       @id @default(autoincrement())
+  booking_id    Int            @id @default(autoincrement())
   start_date    DateTime
   end_date      DateTime
-  booking_date  DateTime  @default(now())
+  booking_date  DateTime       @default(now())
   total_price   String
   workspace_id  Int
   user_id       Int
   payment_id    Int
-  workspace     Workspace @relation(fields: [workspace_id], references: [workspace_id])
-  user          User      @relation(fields: [user_id], references: [user_id])
-  payment       Payment   @relation(fields: [payment_id], references: [payment_id])
+  workspace     Workspace      @relation(fields: [workspace_id], references: [workspace_id])
+  user          User           @relation(fields: [user_id], references: [user_id])
+  payment       Payment        @relation(fields: [payment_id], references: [payment_id])
   notifications Notification[]
 }
 
 model Amenity {
-  amenity_id        Int               @id @default(autoincrement())
+  amenity_id        Int                  @id @default(autoincrement())
   description       String?
   workspaceAmenties WorkspaceAmenities[]
 }
 
 model Notification {
-  notification_id  Int       @id @default(autoincrement())
-  message          String
-  notification_date DateTime @default(now())
-  status           NotificationStatus
-  booking_id       Int
-  booking          Booking  @relation(fields: [booking_id], references: [booking_id])
+  notification_id   Int                @id @default(autoincrement())
+  message           String
+  notification_date DateTime           @default(now())
+  status            NotificationStatus
+  booking_id        Int
+  booking           Booking            @relation(fields: [booking_id], references: [booking_id])
 }
 
 enum NotificationStatus {
@@ -109,8 +109,8 @@ enum NotificationStatus {
 }
 
 model Promotion {
-  promotion_id        Int            @id @default(autoincrement())
-  promo_code          String         @unique
+  promotion_id        Int             @id @default(autoincrement())
+  promo_code          String          @unique
   description         String
   discount_percentage Int?
   discount_amount     Int?
@@ -127,7 +127,6 @@ model WorkspaceAmenities {
 
   @@id([workspace_id, amenity_id])
 }
-
 
 model UserPromotion {
   user_promotion_id Int       @id @default(autoincrement())
