@@ -5,12 +5,11 @@
   "type": "module",
   "scripts": {
     "start": "node --experimental-specifier-resolution=node --loader ts-node/esm bin/www.ts",
-    "build": "tsc && npm run tsoa-gen",
+    "build": "npm run tsoa-gen && tsc",
     "postbuild": "prisma migrate deploy",
     "tsoa-gen": "tsoa routes && tsoa spec",
     "start:prod": "node dist/bin/www.js",
-    "lint": "eslint . --ext .ts",
-    "postinstall": "tsc"
+    "lint": "eslint . --ext .ts"
   },
   "engines": {
     "node": "16.17.1",
