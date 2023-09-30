@@ -13,7 +13,6 @@
       },
       "servers": [
         {
-          "url": "http://localhost:4000",
           "description": "Backend api application for zenspace api"
         }
       ]
