@@ -16,20 +16,43 @@ export const options = {
                 RegisterRequest: {
                     type: 'object',
                     properties: {
-                        first_name: { type: 'string' },
-                        last_name: { type: 'string' },
+                        firstname: { type: 'string' },
+                        lastname: { type: 'string' },
                         email: { type: 'string' },
                         password: { type: 'string' }
                     },
                     required: ['first_name', 'last_name', 'email', 'password']
+                },
+                LoginRequest: {
+                    type: 'object',
+                    properties: {
+                        email: { type : 'string'},
+                        password: { type : 'string'}
+                    },
+                    required: ['email', 'password']
+                },
+                LoginResponse: {
+                    type: 'object',
+                    properties: {
+                        user_id: { type : 'number'},
+                        email: { type : 'string'},
+                        role: { type : 'string'},
+                        token: {type: 'string'}
+                    }
+                },
+                GenericResponse: {
+                    type: 'object',
+                    properties : {
+                        message : {type : 'string'}
+                    }
                 }
             }
         },
         servers: [
             {
-                url: "/",
+                url: "/api",
             },
         ],
     },
-    apis: ["./routes/*.ts"],
+    apis: ["./routes/**/*.ts"],
 };
