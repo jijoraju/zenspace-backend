@@ -3,8 +3,8 @@ import {Prisma} from "@prisma/client";
 
 export type ApiResponse<T> = {
     success: boolean;
-    data?: T;
     message?: string;
+    data?: T;
 };
 
 export interface RegisterRequest {
@@ -23,6 +23,7 @@ export interface LoginResponse {
     user_id: number;
     email: string;
     role?: string;
+    token: string;
 }
 
 export type UserWithType = Prisma.UserGetPayload<{

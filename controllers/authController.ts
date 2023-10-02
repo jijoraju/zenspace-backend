@@ -2,9 +2,8 @@ import {PrismaClient} from "@prisma/client";
 import {User, UserType} from "@prisma/client";
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import {RegisterRequest, LoginRequest, LoginResponse} from "../types/types";
+import {RegisterRequest, LoginRequest, LoginResponse, ApiResponse} from "../types/types";
 import {Request, Response} from 'express';
-import {ApiResponse} from '../utils/ApiResponse'
 
 const compare: typeof bcryptjs.compare = bcryptjs.compare;
 const genSalt: typeof bcryptjs.genSalt = bcryptjs.genSalt;
@@ -30,7 +29,9 @@ export const register = async (req: Request<unknown, unknown, RegisterRequest>, 
 
         // Check if user type exists
         if (!userType) {
-            return ApiResponse.error(res, "User type not found.");
+            return res.status(500).json({
+                message: "User type not found."
+            });
         }
 
         // Create the user
@@ -43,10 +44,11 @@ export const register = async (req: Request<unknown, unknown, RegisterRequest>, 
                 user_type_id: userType.type_id
             }
         });
-
-        return ApiResponse.ok(res);
-    } catch (error) {
-        return ApiResponse.errorWithStatus(res,500, 'Server error');
+        res.status(200);
+    } catch (err) {
+        res.status(500).json({
+            message: "Internal Server Error"
+        });
     }
 }
 
@@ -56,15 +58,23 @@ export const login = async (req: Request<unknown, unknown, LoginRequest>, res: R
     const user: User | null = await prisma.user.findUnique({where: {email}});
 
     if (!user) {
-        return ApiResponse.errorWithStatus(res,401, 'Invalid credentials');
+        const error: ApiResponse<void> = {
+            success: false,
+            message: "Invalid credentials"
+        }
+        return res.status(401).json(error);
     }
 
     const isMatch: boolean = await compare(password, user.password);
     if (!isMatch) {
-        return ApiResponse.errorWithStatus(res,401, 'Invalid credentials');
+        const error: ApiResponse<void> = {
+            success: false,
+            message: "Invalid credentials"
+        }
+        res.status(401).json(error);
     }
 
-    const payload: LoginResponse = {user_id: user.user_id, email: user.email};
+    const payload = {user_id: user.user_id, email: user.email};
 
     // Ensure that JWT_SECRET is defined
     if (!process.env.JWT_SECRET) {
@@ -74,10 +84,18 @@ export const login = async (req: Request<unknown, unknown, LoginRequest>, res: R
 
     const token: string = jwt.sign(payload, JWT_SECRET, {expiresIn: '1h'});
 
-    res.json({success: true, token});
+    const success: ApiResponse<LoginResponse> = {
+        success: false,
+        data: {...payload, token}
+    }
+    res.json(success);
 };
 
 
 export const logout = (req: Request, res: Response) => {
-    return ApiResponse.ok(res, {message: 'Logged out successfully'});
+    const success: ApiResponse<LoginResponse> = {
+        success: false,
+        message: "Logged out successfully"
+    }
+    res.json(success);
 };
