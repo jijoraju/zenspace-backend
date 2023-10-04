@@ -1,5 +1,10 @@
+-- This is an empty migration.
+
+INSERT INTO "UserType" ("type_description") VALUES ('user');
+INSERT INTO "UserType" ("type_description") VALUES ('admin');
+
 -- Insert data into the Location table
-INSERT INTO Location (name, province, latitude, longitude)
+INSERT INTO "Location" (name, province, latitude, longitude)
 VALUES
     ('Toronto', 'Ontario', 43.653225, -79.383186),
     ('Ottawa', 'Ontario', 45.421530, -75.690020),
@@ -11,3 +16,5 @@ VALUES
     ('Brampton', 'Ontario', 43.683334, -79.766670),
     ('Markham', 'Ontario', 43.856100, -79.337019),
     ('Vaughan', 'Ontario', 43.797371, -79.552264);
+
+

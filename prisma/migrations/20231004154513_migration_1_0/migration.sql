@@ -28,6 +28,17 @@ CREATE TABLE "User" (
 );
 
 -- CreateTable
+CREATE TABLE "Location" (
+    "location_id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "province" TEXT NOT NULL,
+    "latitude" DOUBLE PRECISION NOT NULL,
+    "longitude" DOUBLE PRECISION NOT NULL,
+
+    CONSTRAINT "Location_pkey" PRIMARY KEY ("location_id")
+);
+
+-- CreateTable
 CREATE TABLE "Workspace" (
     "workspace_id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
@@ -37,6 +48,7 @@ CREATE TABLE "Workspace" (
     "price_per_hour" DOUBLE PRECISION NOT NULL,
     "price_per_day" DOUBLE PRECISION NOT NULL,
     "no_of_spaces" INTEGER NOT NULL,
+    "location_id" INTEGER NOT NULL,
 
     CONSTRAINT "Workspace_pkey" PRIMARY KEY ("workspace_id")
 );
@@ -147,6 +159,9 @@ CREATE UNIQUE INDEX "Promotion_promo_code_key" ON "Promotion"("promo_code");
 
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_user_type_id_fkey" FOREIGN KEY ("user_type_id") REFERENCES "UserType"("type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Workspace" ADD CONSTRAINT "Workspace_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "Location"("location_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "WorkspacePhoto" ADD CONSTRAINT "WorkspacePhoto_workspace_id_fkey" FOREIGN KEY ("workspace_id") REFERENCES "Workspace"("workspace_id") ON DELETE RESTRICT ON UPDATE CASCADE;
