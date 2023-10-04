@@ -2,8 +2,8 @@ import express, {Express} from 'express';
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
+import {dirname} from 'path';
+import {fileURLToPath} from 'url';
 import swaggerUi from 'swagger-ui-express';
 import cors from 'cors';
 
@@ -33,7 +33,7 @@ const app: Express = express();
 
 app.use(logger('dev'));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors(corsOptions));
@@ -42,10 +42,25 @@ app.use(passport.initialize());
 app.use('/api', router);  // All routes will now be under /api
 
 const specs = swaggerJSDoc(options);
-app.use(
-    "/api-docs",
-    swaggerUi.serve,
-    swaggerUi.setup(specs, { explorer: true })
-);
+
+const customSwaggerOptions = {
+    explorer: true,
+    swaggerOptions: {
+        authAction: {
+            JWT: {
+                name: 'JWT',
+                schema: {
+                    type: 'apiKey',
+                    in: 'header',
+                    name: 'Authorization',
+                    description: 'Bearer'
+                },
+                value: 'Bearer <my own JWT token>'
+            }
+        }
+    }
+}
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, customSwaggerOptions));
 
 export default app;

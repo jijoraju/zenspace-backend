@@ -12,6 +12,14 @@ export const options = {
             },
         },
         components: {
+            securitySchemes: {
+                "JWT": {
+                    "description": "",
+                    "type": "apiKey",
+                    "name": "Authorization",
+                    "in": "header"
+                }
+            },
             schemas: {
                 RegisterRequest: {
                     type: 'object',
@@ -44,6 +52,16 @@ export const options = {
                     type: 'object',
                     properties : {
                         message : {type : 'string'}
+                    }
+                },
+                LocationResponse: {
+                    type: "object",
+                    properties : {
+                        location_id: {type: 'number'},
+                        name: {type: 'string'},
+                        province: {type: 'string'},
+                        latitude: {type: 'float'},
+                        longitude: {type: 'float'}
                     }
                 }
             }
