@@ -29,31 +29,29 @@ model User {
 }
 
 model Location {
-  location_id Int    @id @default(autoincrement())
+  location_id Int         @id @default(autoincrement())
   name        String
   province    String
   latitude    Float
   longitude   Float
-
-  workspaces Workspace[]
+  workspaces  Workspace[]
 }
 
 model Workspace {
-  workspace_id        Int              @id @default(autoincrement())
-  name                String
-  description         String
-  address             String
-  workspace_type      String
-  price_per_hour      Float
-  price_per_day       Float
-  no_of_spaces        Int
-  workspacePhotos     WorkspacePhoto[]
-  reviews             Review[]
-  bookings            Booking[]
-  locationLocation_id Int
-
-  Location          Location             @relation(fields: [locationLocation_id], references: [location_id])
-  workspaceAmenties WorkspaceAmenities[]
+  workspace_id       Int                  @id @default(autoincrement())
+  name               String
+  description        String
+  address            String
+  workspace_type     String
+  price_per_hour     Float
+  price_per_day      Float
+  no_of_spaces       Int
+  location           Location             @relation(fields: [location_id], references: [location_id])
+  location_id        Int
+  workspacePhotos    WorkspacePhoto[]
+  reviews            Review[]
+  bookings           Booking[]
+  workspaceAmenities WorkspaceAmenities[]
 }
 
 model WorkspacePhoto {
