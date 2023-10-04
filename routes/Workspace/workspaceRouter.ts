@@ -12,7 +12,7 @@ const workspaceRouter: Router = express.Router();
  * /location:
  *   get:
  *     security:
- *       - bearerAuth: []
+ *       - JWT: []
  *     tags:
  *       - Location
  *     summary: get all locations
