@@ -24,44 +24,54 @@ export const options = {
                 RegisterRequest: {
                     type: 'object',
                     properties: {
-                        firstname: { type: 'string' },
-                        lastname: { type: 'string' },
-                        email: { type: 'string' },
-                        password: { type: 'string' }
+                        firstname: {type: 'string'},
+                        lastname: {type: 'string'},
+                        email: {type: 'string'},
+                        password: {type: 'string'}
                     },
                     required: ['first_name', 'last_name', 'email', 'password']
                 },
                 LoginRequest: {
                     type: 'object',
                     properties: {
-                        email: { type : 'string'},
-                        password: { type : 'string'}
+                        email: {type: 'string'},
+                        password: {type: 'string'}
                     },
                     required: ['email', 'password']
                 },
                 LoginResponse: {
                     type: 'object',
                     properties: {
-                        user_id: { type : 'number'},
-                        email: { type : 'string'},
-                        role: { type : 'string'},
-                        token: {type: 'string'}
+                        data: {
+                            type: 'object',
+                            properties: {
+                                user_id: {type: 'number'},
+                                email: {type: 'string'},
+                                role: {type: 'string'},
+                                token: {type: 'string'}
+                            }
+                        }
                     }
                 },
                 GenericResponse: {
                     type: 'object',
-                    properties : {
-                        message : {type : 'string'}
+                    properties: {
+                        message: {type: 'string'}
                     }
                 },
                 LocationResponse: {
                     type: "object",
-                    properties : {
-                        location_id: {type: 'number'},
-                        name: {type: 'string'},
-                        province: {type: 'string'},
-                        latitude: {type: 'float'},
-                        longitude: {type: 'float'}
+                    properties: {
+                        data: {
+                            type: 'object',
+                            properties: {
+                                location_id: {type: 'number'},
+                                name: {type: 'string'},
+                                province: {type: 'string'},
+                                latitude: {type: 'float'},
+                                longitude: {type: 'float'}
+                            }
+                        }
                     }
                 }
             }
