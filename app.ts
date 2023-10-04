@@ -12,7 +12,7 @@ import swaggerJSDoc from "swagger-jsdoc";
 import {options} from "./config/swagger";
 import router from "./routes";
 
-const allowedOrigins: string[] = ['http://localhost:5173', 'https://zenspace-backend.onrender.com'];
+const allowedOrigins: string[] = ['http://localhost:5173', "http://127.0.0.1:5173", 'https://zenspace-frontend.onrender.com'];
 
 const corsOptions: cors.CorsOptions = {
     origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
