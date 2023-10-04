@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node --experimental-specifier-resolution=node --loader ts-node/esm bin/www.ts",
     "build": "tsc",
-    "postbuild": "prisma migrate deploy",
+    "postbuild": "prisma generate && prisma migrate deploy",
     "start:prod": "node dist/bin/www.js",
     "lint": "eslint . --ext .ts"
   },
