@@ -80,7 +80,13 @@ export const login = async (req: Request<unknown, unknown, LoginRequest>, res: R
         });
     }
 
-    const payload = {user_id: user.user_id, email: user.email, role: user.userType.type_description};
+    const payload = {
+        user_id: user.user_id,
+        email: user.email,
+        firstname: user.first_name,
+        lastname: user.last_name,
+        role: user.userType.type_description
+    };
 
     // Ensure that JWT_SECRET is defined
     if (!process.env.JWT_SECRET) {

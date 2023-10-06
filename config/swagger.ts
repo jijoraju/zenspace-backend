@@ -47,6 +47,8 @@ export const options = {
                             properties: {
                                 user_id: {type: 'number'},
                                 email: {type: 'string'},
+                                firstname: {type: 'string'},
+                                lastname: {type: 'string'},
                                 role: {type: 'string'},
                                 token: {type: 'string'}
                             }
