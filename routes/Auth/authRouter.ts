@@ -81,4 +81,5 @@ authRouter.get('/admin', passport.authenticate('jwt', {session: false}), checkUs
     res.json({message: 'Admin area!'});
 });
 
+
 export default authRouter;
