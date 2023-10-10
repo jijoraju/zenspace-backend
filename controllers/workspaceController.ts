@@ -1,4 +1,4 @@
-import {Request, Response} from "express";
+import {Request, response, Response} from "express";
 import {$Enums, Booking, PrismaClient} from "@prisma/client";
 import WorkspaceType = $Enums.WorkspaceType;
 import {WorkSpaceWithBookings} from "../types/types";
@@ -99,7 +99,9 @@ export const searchWorkspaces = async (req: Request, res: Response) => {
             return availableSpaces >= noOfSpaces;
         });
 
-        return res.json({success: true, data: searchResults})
+        const modifiedResponse: Omit<WorkSpaceWithBookings, 'bookings'>[] = searchResults.map(({ bookings, ...otherProps }) => otherProps);
+
+        return res.json({success: true, data: modifiedResponse})
 
     } catch (error) {
         console.error(error);
