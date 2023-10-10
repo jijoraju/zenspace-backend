@@ -41,9 +41,7 @@ model Workspace {
   workspace_id       Int                  @id @default(autoincrement())
   name               String
   description        String
-  address            String
-  workspace_type     String
-  price_per_hour     Float
+  workspace_type     WorkspaceType
   price_per_day      Float
   no_of_spaces       Int
   location           Location             @relation(fields: [location_id], references: [location_id])
@@ -52,6 +50,21 @@ model Workspace {
   reviews            Review[]
   bookings           Booking[]
   workspaceAmenities WorkspaceAmenities[]
+  workspaceAddress   WorkspaceAddress     @relation(fields: [address_id], references: [workspace_address_id])
+  address_id         Int                  @unique
+}
+
+enum WorkspaceType {
+  ONE_DAY
+  MULTIPLE_DAYS
+}
+
+model WorkspaceAddress {
+  workspace_address_id Int        @id @default(autoincrement())
+  address              String
+  latitude             Float
+  longitude            Float
+  workspace            Workspace?
 }
 
 model WorkspacePhoto {
@@ -63,7 +76,7 @@ model WorkspacePhoto {
 
 model Review {
   review_id    Int       @id @default(autoincrement())
-  rating       Int
+  rating       Float
   comments     String?
   review_date  DateTime  @default(now())
   workspace_id Int
@@ -89,6 +102,7 @@ model Booking {
   start_date    DateTime
   end_date      DateTime
   booking_date  DateTime       @default(now())
+  no_of_space   Int
   total_price   String
   workspace_id  Int
   user_id       Int

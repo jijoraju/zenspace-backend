@@ -2,6 +2,7 @@ import express, {Router} from "express";
 import passport from "passport";
 import {checkUserRole} from "../../middlewares/authorization";
 import {findAllLocations, findLocationByName} from "../../controllers/locationController";
+import {searchWorkspaces} from "../../controllers/workspaceController";
 
 
 const workspaceRouter: Router = express.Router();
@@ -87,6 +88,8 @@ workspaceRouter.get(
     "/locationByName",
     findLocationByName
 );
+
+workspaceRouter.get("/workspace/search", searchWorkspaces);
 
 export default workspaceRouter;
 

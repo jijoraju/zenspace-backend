@@ -29,3 +29,12 @@ export interface LoginResponse {
 export type UserWithType = Prisma.UserGetPayload<{
     include: { userType: true }
 }>
+
+export type WorkSpaceWithBookings = Prisma.WorkspaceGetPayload<{
+    include: {
+        reviews: true,
+        workspaceAddress: true,
+        location: true,
+        bookings: true
+    }
+}>
