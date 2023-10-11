@@ -4,6 +4,7 @@ import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import {RegisterRequest, LoginRequest, UserWithType} from "../types/types";
 import {Request, Response} from 'express';
+import validator from 'validator';
 
 const compare: typeof bcryptjs.compare = bcryptjs.compare;
 const genSalt: typeof bcryptjs.genSalt = bcryptjs.genSalt;

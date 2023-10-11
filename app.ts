@@ -11,6 +11,7 @@ import passport from "./config/passport";
 import swaggerJSDoc from "swagger-jsdoc";
 import {options} from "./config/swagger";
 import router from "./routes";
+import sanitizeAll from "./middlewares/sanitizeAll";
 
 const allowedOrigins: string[] = ['http://localhost:5173', "http://127.0.0.1:5173", 'https://zenspace-frontend.onrender.com'];
 
@@ -37,6 +38,7 @@ app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors(corsOptions));
+app.use(sanitizeAll);
 app.use(passport.initialize());
 
 app.use('/api', router);  // All routes will now be under /api
