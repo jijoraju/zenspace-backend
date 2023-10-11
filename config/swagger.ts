@@ -75,6 +75,53 @@ export const options = {
                             }
                         }
                     }
+                },
+                WorkspaceAddress : {
+                    type: 'object',
+                    properties: {
+                        workspace_address_id: {type: 'integer'},
+                        address: {type: 'string'},
+                        latitude: {type: 'number'},
+                        longitude: {type: 'number'}
+                    }
+                },
+                Location : {
+                    type: 'object',
+                    properties: {
+                        location_id: {type: 'integer'},
+                        name: {type: 'string'},
+                        province: {type: 'string'},
+                        latitude: {type: 'number'},
+                        longitude: {type: 'number'}
+                    }
+                },
+                Workspace : {
+                    type: 'object',
+                    properties: {
+                        workspace_id: {type: 'integer'},
+                        name: {type: 'string'},
+                        description: {type: 'string'},
+                        workspace_type: {type: 'string'},
+                        price_per_day: {type: 'number'},
+                        no_of_spaces: {type: 'integer'},
+                        location_id: {type: 'integer'},
+                        address_id: {type: 'integer'},
+                        reviews: {
+                            type: 'array',
+                            items: {'$ref': '#/components/schemas/Review'}
+                        },
+                        workspaceAddress: {'$ref': '#/components/schemas/WorkspaceAddress'},
+                        location: {'$ref': '#/components/schemas/Location'}
+                    }
+                },
+                WorkSpaceSearchResponse : {
+                    type: 'object',
+                    properties: {
+                        data: {
+                            type: 'array',
+                            items: {'$ref': '#/components/schemas/Workspace'}
+                        }
+                    }
                 }
             }
         },

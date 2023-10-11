@@ -89,6 +89,76 @@ workspaceRouter.get(
     findLocationByName
 );
 
+/**
+ * @swagger
+ * /workspace/search:
+ *   get:
+ *     tags:
+ *       - Workspace
+ *     summary: Search for workspaces
+ *     description: Retrieve a list of workspaces based on provided search criteria.
+ *     parameters:
+ *       - in: query
+ *         name: locationId
+ *         schema:
+ *           type: string
+ *         description: The ID of the location to filter workspaces.
+ *         required: true
+ *       - in: query
+ *         name: workspace_type
+ *         schema:
+ *           type: string
+ *         description: Type of the workspace to filter.
+ *         required: true
+ *       - in: query
+ *         name: price
+ *         schema:
+ *           type: number
+ *         description: Maximum price per day.
+ *       - in: query
+ *         name: rating
+ *         schema:
+ *           type: number
+ *         description: Minimum average rating.
+ *       - in: query
+ *         name: noOfSpace
+ *         schema:
+ *           type: number
+ *         description: Total space required.
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date for availability check.
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date for availability check.
+ *     responses:
+ *       200:
+ *         description: A list of workspaces that match the search criteria.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/WorkSpaceSearchResponse'
+ *       400:
+ *         description: Bad request (e.g., invalid workspace type or location ID).
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GenericResponse'
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GenericResponse'
+ */
 workspaceRouter.get("/workspace/search", searchWorkspaces);
 
 export default workspaceRouter;
