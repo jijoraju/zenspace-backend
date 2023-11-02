@@ -137,6 +137,26 @@ workspaceRouter.get(
  *           type: string
  *           format: date
  *         description: End date for availability check.
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: number
+ *         description: Page number
+ *       - in: query
+ *         name: pageSize
+ *         schema:
+ *           type: number
+ *         description: Page size
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *         description: Field name for sorting
+ *       - in: query
+ *         name: order
+ *         schema:
+ *           type: string
+ *         description: Sorting oder for the given field
  *     responses:
  *       200:
  *         description: A list of workspaces that match the search criteria.

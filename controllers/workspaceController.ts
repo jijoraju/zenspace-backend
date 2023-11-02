@@ -1,4 +1,4 @@
-import {Request, response, Response} from "express";
+import {Request, Response} from "express";
 import {$Enums, Booking, PrismaClient} from "@prisma/client";
 import WorkspaceType = $Enums.WorkspaceType;
 import {WorkSpaceWithBookings} from "../types/types";
@@ -25,6 +25,14 @@ export const searchWorkspaces = async (req: Request, res: Response) => {
     const fromDate: string | undefined = startDate ? String(startDate) : undefined;
     const toDate: string | undefined = endDate ? String(endDate) : undefined;
     const noOfSpaces: number | undefined = noOfSpace ? Number(noOfSpace) : 0;
+
+    const page: number = req.query.page ? Number(req.query.page) : 1;
+    const pageSize: number = req.query.pageSize ? Number(req.query.pageSize) : 10; // Default page size
+    const skip = (page - 1) * pageSize;
+
+    const sort: keyof WorkSpaceWithBookings = (req.query.sort as keyof WorkSpaceWithBookings) || 'name';
+    const order: 'asc' | 'desc' = req.query.order === 'desc' ? 'desc' : 'asc';
+
 
     if (workspace_type && !Object.values(WorkspaceType).includes(workspace_type as WorkspaceType)) {
         res.status(400).json({message: 'Invalid workspace type'});
@@ -99,9 +107,45 @@ export const searchWorkspaces = async (req: Request, res: Response) => {
             return availableSpaces >= noOfSpaces;
         });
 
+        let finalWorkspaceIds: number[] = searchResults.map(r => r.workspace_id);
+
+        const totalCount: number = finalWorkspaceIds.length;
+
+        searchResults = await prisma.workspace.findMany({
+            where: {
+                workspace_id: {
+                    in: finalWorkspaceIds
+                }
+            },
+            include: {
+                reviews: true,
+                workspaceAddress: true,
+                location: true,
+                bookings: true
+            },
+            skip,
+            take : pageSize,
+            orderBy: {
+                [sort || 'name'] : order
+            }
+        });
+
         const modifiedResponse: Omit<WorkSpaceWithBookings, 'bookings'>[] = searchResults.map(({ bookings, ...otherProps }) => otherProps);
 
-        return res.json({success: true, data: modifiedResponse})
+        const totalPages: number = Math.ceil(totalCount / pageSize);
+
+        return res.json({
+            success: true,
+            meta: {
+                currentPage: page,
+                pageSize: pageSize,
+                totalResults: totalCount,
+                totalPages: totalPages,
+                sortBy: sort,
+                sortOrder: order
+            },
+            data: modifiedResponse
+        })
 
     } catch (error) {
         console.error(error);

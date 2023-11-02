@@ -95,6 +95,16 @@ export const options = {
                         longitude: {type: 'number'}
                     }
                 },
+                Review: {
+                    type: 'object',
+                    properties: {
+                        review_id: { type: 'integer' },
+                        rating: { type: 'number' },
+                        comments: { type: 'string', nullable: true },
+                        review_date: { type: 'string', format: 'date-time' },
+                        workspace_id: { type: 'integer' }
+                    }
+                },
                 Workspace : {
                     type: 'object',
                     properties: {
@@ -117,6 +127,17 @@ export const options = {
                 WorkSpaceSearchResponse : {
                     type: 'object',
                     properties: {
+                        meta: {
+                            type: 'object',
+                            properties: {
+                                currentPage: { type: 'integer' },
+                                pageSize: { type: 'integer' },
+                                totalResults: { type: 'integer' },
+                                totalPages: { type: 'integer' },
+                                sortBy: { type: 'string' },
+                                sortOrder: { type: 'string' }
+                            }
+                        },
                         data: {
                             type: 'array',
                             items: {'$ref': '#/components/schemas/Workspace'}
