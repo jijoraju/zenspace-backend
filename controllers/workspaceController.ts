@@ -1,7 +1,7 @@
 import {Request, Response} from "express";
 import {$Enums, Booking, PrismaClient} from "@prisma/client";
-import WorkspaceType = $Enums.WorkspaceType;
 import {WorkspaceFull, WorkSpaceWithBookings} from "../types/types";
+import WorkspaceType = $Enums.WorkspaceType;
 
 const prisma: PrismaClient = new PrismaClient();
 
@@ -85,7 +85,7 @@ export const searchWorkspaces = async (req: Request, res: Response) => {
 
             if (workspaceType == WorkspaceType.ONE_DAY) {
                 bookedSpaces = spacesBooked(workspace.bookings, (booking: Booking) => {
-                    if(fromDate) {
+                    if (fromDate) {
                         return Boolean(fromDate) && new Date(booking.start_date).toDateString() === new Date(fromDate).toDateString();
                     } else {
                         return false;
@@ -124,13 +124,18 @@ export const searchWorkspaces = async (req: Request, res: Response) => {
                 bookings: true
             },
             skip,
-            take : pageSize,
+            take: pageSize,
             orderBy: {
-                [sort || 'name'] : order
+                [sort || 'name']: order
             }
         });
 
-        const modifiedResponse: Omit<WorkSpaceWithBookings, 'bookings'>[] = searchResults.map(({ bookings, ...otherProps }) => otherProps);
+        const modifiedResponse: Omit<WorkSpaceWithBookings, 'bookings'>[] = searchResults.map(
+            ({
+                 bookings,
+                 ...otherProps
+             }) => otherProps
+        );
 
         const totalPages: number = Math.ceil(totalCount / pageSize);
 
@@ -175,13 +180,17 @@ export const getWorkspaceById = async (req: Request, res: Response) => {
                 reviews: true,
                 workspaceAddress: true,
                 location: true,
-                workspaceAmenities: true,
+                workspaceAmenities: {
+                    include: {
+                        amenity: true,
+                    },
+                },
                 workspacePhotos: true
             }
         });
 
         if (!workspace) {
-            return res.status(404).json({ message: 'Workspace not found' });
+            return res.status(404).json({message: 'Workspace not found'});
         }
 
         // Calculating the average rating
@@ -189,19 +198,23 @@ export const getWorkspaceById = async (req: Request, res: Response) => {
             .reduce((sum, review) => sum + review.rating, 0.0);
         const avgRating: number = totalRating / workspace.reviews.length || 0.0;
 
-        const modifiedResponse = {
-            ...workspace,
+        const amenitiesDescriptions = workspace.workspaceAmenities.map(amenity => amenity.amenity.description);
+
+        const { workspaceAmenities, ...workspaceWithAmenities } = workspace;
+        const modifiedWorkspace = {
+            ...workspaceWithAmenities,
+            amenities: amenitiesDescriptions,
             avgRating: avgRating
         };
 
         return res.json({
             success: true,
-            data: modifiedResponse
+            data: modifiedWorkspace
         });
 
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ error: 'Internal server error' });
+        return res.status(500).json({error: 'Internal server error'});
     }
 }
 

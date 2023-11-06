@@ -44,7 +44,11 @@ export type WorkspaceFull = (Prisma.WorkspaceGetPayload<{
         reviews: true,
         workspaceAddress: true,
         location: true,
-        workspaceAmenities: true,
+        workspaceAmenities: {
+            include: {
+                amenity: true,
+            }
+        },
         workspacePhotos: true
     }
 }>) | null;
