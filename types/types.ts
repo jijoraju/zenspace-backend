@@ -35,6 +35,16 @@ export type WorkSpaceWithBookings = Prisma.WorkspaceGetPayload<{
         reviews: true,
         workspaceAddress: true,
         location: true,
-        bookings: true
+        bookings: true,
     }
 }>
+
+export type WorkspaceFull = (Prisma.WorkspaceGetPayload<{
+    include: {
+        reviews: true,
+        workspaceAddress: true,
+        location: true,
+        workspaceAmenities: true,
+        workspacePhotos: true
+    }
+}>) | null;

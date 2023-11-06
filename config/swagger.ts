@@ -76,7 +76,7 @@ export const options = {
                         }
                     }
                 },
-                WorkspaceAddress : {
+                WorkspaceAddress: {
                     type: 'object',
                     properties: {
                         workspace_address_id: {type: 'integer'},
@@ -85,7 +85,7 @@ export const options = {
                         longitude: {type: 'number'}
                     }
                 },
-                Location : {
+                Location: {
                     type: 'object',
                     properties: {
                         location_id: {type: 'integer'},
@@ -98,14 +98,14 @@ export const options = {
                 Review: {
                     type: 'object',
                     properties: {
-                        review_id: { type: 'integer' },
-                        rating: { type: 'number' },
-                        comments: { type: 'string', nullable: true },
-                        review_date: { type: 'string', format: 'date-time' },
-                        workspace_id: { type: 'integer' }
+                        review_id: {type: 'integer'},
+                        rating: {type: 'number'},
+                        comments: {type: 'string', nullable: true},
+                        review_date: {type: 'string', format: 'date-time'},
+                        workspace_id: {type: 'integer'}
                     }
                 },
-                Workspace : {
+                Workspace: {
                     type: 'object',
                     properties: {
                         workspace_id: {type: 'integer'},
@@ -116,26 +116,47 @@ export const options = {
                         no_of_spaces: {type: 'integer'},
                         location_id: {type: 'integer'},
                         address_id: {type: 'integer'},
+                        avgRating: {type: 'number'},
                         reviews: {
                             type: 'array',
                             items: {'$ref': '#/components/schemas/Review'}
                         },
                         workspaceAddress: {'$ref': '#/components/schemas/WorkspaceAddress'},
-                        location: {'$ref': '#/components/schemas/Location'}
+                        location: {'$ref': '#/components/schemas/Location'},
+                        workspaceAmenities: {
+                            type: 'array',
+                            items: {'$ref': '#/components/schemas/WorkspaceAmenities'}
+                        },
+                        workspacePhotos: {
+                            type: 'array',
+                            items: {'$ref': '#/components/schemas/WorkspacePhotos'}
+                        }
                     }
                 },
-                WorkSpaceSearchResponse : {
+                WorkspaceAmenities: {
+                    type: 'object',
+                    properties: {
+                        description: {type: 'string'}
+                    }
+                },
+                WorkspacePhotos: {
+                    type: 'object',
+                    properties: {
+                        photo_url: {type: 'string'}
+                    }
+                },
+                WorkSpaceSearchResponse: {
                     type: 'object',
                     properties: {
                         meta: {
                             type: 'object',
                             properties: {
-                                currentPage: { type: 'integer' },
-                                pageSize: { type: 'integer' },
-                                totalResults: { type: 'integer' },
-                                totalPages: { type: 'integer' },
-                                sortBy: { type: 'string' },
-                                sortOrder: { type: 'string' }
+                                currentPage: {type: 'integer'},
+                                pageSize: {type: 'integer'},
+                                totalResults: {type: 'integer'},
+                                totalPages: {type: 'integer'},
+                                sortBy: {type: 'string'},
+                                sortOrder: {type: 'string'}
                             }
                         },
                         data: {

@@ -2,7 +2,7 @@ import express, {Router} from "express";
 import passport from "passport";
 import {checkUserRole} from "../../middlewares/authorization";
 import {findAllLocations, findLocationByName} from "../../controllers/locationController";
-import {searchWorkspaces} from "../../controllers/workspaceController";
+import {getWorkspaceById, searchWorkspaces} from "../../controllers/workspaceController";
 
 
 const workspaceRouter: Router = express.Router();
@@ -180,6 +180,44 @@ workspaceRouter.get(
  *               $ref: '#/components/schemas/GenericResponse'
  */
 workspaceRouter.get("/workspace/search", searchWorkspaces);
+
+
+/**
+ * @swagger
+ * /workspace/{workspaceId}:
+ *   get:
+ *     summary: Retrieve Workspace by ID
+ *     description: Fetches details of a workspace by its ID, including associated reviews, address, location, amenities, and photos. Also computes the average rating.
+ *     tags:
+ *       - Workspace
+ *     parameters:
+ *       - in: path
+ *         name: workspaceId
+ *         required: true
+ *         schema:
+ *           type: number
+ *         description: ID of the workspace to fetch.
+ *     responses:
+ *       200:
+ *         description: Successful response.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/WorkspaceDetailsResponse'
+ *       404:
+ *         description: Workspace not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GenericResponse'
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GenericResponse'
+ */
+workspaceRouter.get("/workspace/:workspaceId", getWorkspaceById);
 
 export default workspaceRouter;
 

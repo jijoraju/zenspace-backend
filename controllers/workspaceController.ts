@@ -1,7 +1,7 @@
 import {Request, Response} from "express";
 import {$Enums, Booking, PrismaClient} from "@prisma/client";
 import WorkspaceType = $Enums.WorkspaceType;
-import {WorkSpaceWithBookings} from "../types/types";
+import {WorkspaceFull, WorkSpaceWithBookings} from "../types/types";
 
 const prisma: PrismaClient = new PrismaClient();
 
@@ -161,5 +161,47 @@ function spacesBooked(bookings: Booking[], conditionCheck: (booking: Booking) =>
         }
         return sum;
     }, 0);
+}
+
+export const getWorkspaceById = async (req: Request, res: Response) => {
+    const workspaceId: number = Number(req.params.workspaceId);
+
+    try {
+        const workspace: WorkspaceFull = await prisma.workspace.findUnique({
+            where: {
+                workspace_id: workspaceId,
+            },
+            include: {
+                reviews: true,
+                workspaceAddress: true,
+                location: true,
+                workspaceAmenities: true,
+                workspacePhotos: true
+            }
+        });
+
+        if (!workspace) {
+            return res.status(404).json({ message: 'Workspace not found' });
+        }
+
+        // Calculating the average rating
+        const totalRating: number = workspace.reviews
+            .reduce((sum, review) => sum + review.rating, 0.0);
+        const avgRating: number = totalRating / workspace.reviews.length || 0.0;
+
+        const modifiedResponse = {
+            ...workspace,
+            avgRating: avgRating
+        };
+
+        return res.json({
+            success: true,
+            data: modifiedResponse
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
 }
 
