@@ -198,13 +198,16 @@ export const getWorkspaceById = async (req: Request, res: Response) => {
             .reduce((sum, review) => sum + review.rating, 0.0);
         const avgRating: number = totalRating / workspace.reviews.length || 0.0;
 
+        const photoUrls: string[] = workspace.workspacePhotos.map(photo => photo.photo_url);
         const amenitiesDescriptions = workspace.workspaceAmenities.map(amenity => amenity.amenity.description);
 
-        const { workspaceAmenities, ...workspaceWithAmenities } = workspace;
+        const {workspacePhotos, workspaceAmenities, ...workspaceWithAmenities} = workspace;
+
         const modifiedWorkspace = {
             ...workspaceWithAmenities,
             amenities: amenitiesDescriptions,
-            avgRating: avgRating
+            avgRating,
+            photos: photoUrls
         };
 
         return res.json({
