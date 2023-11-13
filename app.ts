@@ -1,8 +1,7 @@
 import express, {Express} from 'express';
-import path from 'path';
+import path, {dirname} from 'path';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
-import {dirname} from 'path';
 import {fileURLToPath} from 'url';
 import swaggerUi from 'swagger-ui-express';
 import cors from 'cors';
@@ -13,7 +12,13 @@ import {options} from "./config/swagger";
 import router from "./routes";
 import sanitizeAll from "./middlewares/sanitizeAll";
 
-const allowedOrigins: string[] = ['http://localhost:5173', "http://127.0.0.1:5173", 'https://zenspace-frontend.onrender.com','http://192.168.1.100:8888','http://192.168.1.100:8889'];
+const allowedOrigins: string[] = [
+    'http://localhost:5173',
+    "http://127.0.0.1:5173",
+    'https://zenspace-frontend.onrender.com',
+    'http://192.168.1.100:8888',
+    'http://192.168.1.100:8889',
+    'https://checkout.stripe.com'];
 
 const corsOptions: cors.CorsOptions = {
     origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {

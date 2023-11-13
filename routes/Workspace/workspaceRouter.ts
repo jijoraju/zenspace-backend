@@ -219,10 +219,8 @@ workspaceRouter.get("/workspace/search", searchWorkspaces);
  */
 workspaceRouter.get("/workspace/:workspaceId", getWorkspaceById);
 
-workspaceRouter.get('/checkout', checkout)
+workspaceRouter.post('/checkout', checkout)
 workspaceRouter.get('/test-success/:sessionId', successTest)
-
-
 
 export default workspaceRouter;
 
