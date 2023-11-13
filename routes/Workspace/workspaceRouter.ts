@@ -2,7 +2,7 @@ import express, {Router} from "express";
 import passport from "passport";
 import {checkUserRole} from "../../middlewares/authorization";
 import {findAllLocations, findLocationByName} from "../../controllers/locationController";
-import {getWorkspaceById, searchWorkspaces} from "../../controllers/workspaceController";
+import {checkout, getWorkspaceById, searchWorkspaces, successTest} from "../../controllers/workspaceController";
 
 
 const workspaceRouter: Router = express.Router();
@@ -218,6 +218,11 @@ workspaceRouter.get("/workspace/search", searchWorkspaces);
  *               $ref: '#/components/schemas/GenericResponse'
  */
 workspaceRouter.get("/workspace/:workspaceId", getWorkspaceById);
+
+workspaceRouter.get('/checkout', checkout)
+workspaceRouter.get('/test-success/:sessionId', successTest)
+
+
 
 export default workspaceRouter;
 

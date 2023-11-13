@@ -1,10 +1,17 @@
 import {Request, Response} from "express";
 import {$Enums, Booking, PrismaClient} from "@prisma/client";
 import {WorkspaceFull, WorkSpaceWithBookings} from "../types/types";
+import Stripe from "stripe";
+
 import WorkspaceType = $Enums.WorkspaceType;
 
 const prisma: PrismaClient = new PrismaClient();
 
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || '';
+const stripe: Stripe = new Stripe(STRIPE_SECRET_KEY, {
+    apiVersion: "2023-10-16",
+    typescript: true,
+});
 
 export const searchWorkspaces = async (req: Request, res: Response) => {
 
@@ -221,3 +228,44 @@ export const getWorkspaceById = async (req: Request, res: Response) => {
     }
 }
 
+
+const YOUR_DOMAIN = 'http://127.0.0.1:5173';
+export const checkout = async (req: Request, res: Response) => {
+    try {
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: [{
+                price_data: {
+                    currency: 'cad',
+                    product_data: {
+                        name: 'Custom Charge',
+                    },
+                    unit_amount: 200,
+                },
+                quantity: 1,
+            }],
+            mode: 'payment',
+            success_url: `${YOUR_DOMAIN}?success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${YOUR_DOMAIN}?canceled=true`,
+        });
+
+        if (session.url) {
+            res.redirect(303, session.url);
+        } else {
+            // Handle the error or missing URL appropriately
+            return res.status(500).json({error: 'Internal server error'});
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({error: 'Internal server error'});
+    }
+}
+
+export const successTest = async (req: Request, res: Response) => {
+    try {
+        const session = await stripe.checkout.sessions.retrieve(req.params.sessionId);
+        res.json(session);
+    } catch (error) {
+        return res.status(500).json({error: 'Internal server error'});
+    }
+}
