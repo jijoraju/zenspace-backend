@@ -250,10 +250,14 @@ export const checkout = async (req: Request, res: Response) => {
         });
 
         if (session.url) {
-            res.redirect(303, session.url);
+            return res.status(200).json({
+                success: true,
+                data: {
+                    url: session.url
+                }
+            });
         } else {
-            // Handle the error or missing URL appropriately
-            return res.status(500).json({error: 'Internal server error'});
+            return res.status(500).json({ error: 'Failed to create Stripe session' });
         }
     } catch (error) {
         console.error(error);
