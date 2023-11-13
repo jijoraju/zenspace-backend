@@ -245,8 +245,8 @@ export const checkout = async (req: Request, res: Response) => {
                 quantity: 1,
             }],
             mode: 'payment',
-            success_url: `${YOUR_DOMAIN}??success&session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${YOUR_DOMAIN}?canceled=true`,
+            success_url: `${YOUR_DOMAIN}/success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${YOUR_DOMAIN}/canceled=true`,
         });
 
         if (session.url) {
