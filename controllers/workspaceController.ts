@@ -13,7 +13,7 @@ import WorkspaceType = $Enums.WorkspaceType;
 
 const prisma: PrismaClient = new PrismaClient();
 
-const DOMAIN_URL: string = process.env.DOMAIN_URL || '';
+let DOMAIN_URL: string = process.env.DOMAIN_URL || '';
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || '';
 
 const stripe: Stripe = new Stripe(STRIPE_SECRET_KEY, {
@@ -246,6 +246,10 @@ export const checkout = async (req: Request, res: Response) => {
         const bookingDetails: BookingDetail = checkoutData.bookingDetail;
         const chargeDetail: ChargeDetail = checkoutData.chargeDetail;
         const workspaceDetails : WorkspaceDetails = checkoutData.workspace;
+
+        if(checkoutData.domain) {
+            DOMAIN_URL = checkoutData.domain;
+        }
 
         if (!workspaceDetails.id) return res.status(404).json({ error: 'Invalid workspace' });
 
