@@ -321,7 +321,7 @@ async function createCheckoutSession(productName: string, prodDesc: string, tota
             price_data: {
                 currency: 'cad',
                 product_data: { name: productName, description: prodDesc },
-                unit_amount: totalAmount,
+                unit_amount: Math.round(totalAmount * 100),
             },
             quantity: 1,
         }],
