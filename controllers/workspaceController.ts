@@ -13,7 +13,7 @@ import WorkspaceType = $Enums.WorkspaceType;
 
 const prisma: PrismaClient = new PrismaClient();
 
-let DOMAIN_URL: string = process.env.DOMAIN_URL || '';
+const DOMAIN_URL: string = process.env.DOMAIN_URL || '';
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || '';
 
 const stripe: Stripe = new Stripe(STRIPE_SECRET_KEY, {
@@ -247,9 +247,7 @@ export const checkout = async (req: Request, res: Response) => {
         const chargeDetail: ChargeDetail = checkoutData.chargeDetail;
         const workspaceDetails : WorkspaceDetails = checkoutData.workspace;
 
-        if(checkoutData.domain && checkoutData.domain.includes('127.0.0.1:5173')) {
-            DOMAIN_URL = 'http://127.0.0.1:5173'
-        }
+        const LOCAL_URL = (checkoutData.domain && checkoutData.domain.includes('127.0.0.1:5173')) ? 'http://127.0.0.1:5173' : '';
 
         if (!workspaceDetails.id) return res.status(404).json({ error: 'Invalid workspace' });
 
@@ -276,7 +274,7 @@ export const checkout = async (req: Request, res: Response) => {
 
         const { productName, prodDesc, totalAmount } = getPaymentData(workspace, bookingDetails, chargeDetail);
 
-        const session = await createCheckoutSession(productName, prodDesc, totalAmount);
+        const session = await createCheckoutSession(productName, prodDesc, totalAmount, LOCAL_URL);
         return session.url
             ? res.status(200).json({ success: true, data: { url: session.url } })
             : res.status(500).json({ error: 'Failed to create Stripe session' });
@@ -318,10 +316,12 @@ function calculateDaysDifference(startDate: Date, endDate: Date, workspaceType: 
 }
 
 
-async function createCheckoutSession(productName: string, prodDesc: string, totalAmount: number) {
+async function createCheckoutSession(productName: string, prodDesc: string, totalAmount: number, localUrl: string) {
 
-    const successUrl = `${DOMAIN_URL}/checkout?result=success&session_id={CHECKOUT_SESSION_ID}`;
-    const cancelUrl = `${DOMAIN_URL}/checkout?result=cancel&session_id={CHECKOUT_SESSION_ID}`;
+    const domain = localUrl != '' ? localUrl : DOMAIN_URL;
+
+    const successUrl = `${domain}/checkout?result=success&session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${domain}/checkout?result=cancel&session_id={CHECKOUT_SESSION_ID}`;
 
     console.log(`Success url is : ${successUrl} and Cancel url is : ${cancelUrl}`);
 

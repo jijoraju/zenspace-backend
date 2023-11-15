@@ -259,7 +259,7 @@ workspaceRouter.get("/workspace/:workspaceId", getWorkspaceById);
  *             schema:
  *               $ref: '#/components/schemas/GenericErrorResponse'
  */
-workspaceRouter.post('/checkout', passport.authenticate('jwt', {session: false}), checkout)
+workspaceRouter.post('/checkout', checkout)
 
 
 workspaceRouter.get('/test-success/:sessionId', passport.authenticate('jwt', {session: false}), successTest)
