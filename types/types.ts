@@ -30,14 +30,20 @@ export type UserWithType = Prisma.UserGetPayload<{
     include: { userType: true }
 }>
 
-export type WorkSpaceWithBookings = Prisma.WorkspaceGetPayload<{
+export type WorkSpaceWithBookings = (Prisma.WorkspaceGetPayload<{
     include: {
         reviews: true,
         workspaceAddress: true,
         location: true,
         bookings: true,
     }
-}>
+}>);
+
+export type WorkSpaceWithOnlyBookings = (Prisma.WorkspaceGetPayload<{
+    include: {
+        bookings: true,
+    }
+}>);
 
 export type WorkspaceFull = (Prisma.WorkspaceGetPayload<{
     include: {
@@ -52,3 +58,31 @@ export type WorkspaceFull = (Prisma.WorkspaceGetPayload<{
         workspacePhotos: true
     }
 }>) | null;
+
+export type WorkspaceDetails = {
+    id: number;
+    type: 'MULTIPLE_DAYS' | 'ONE_DAY';
+};
+
+export type DateSelected = {
+    start: string;
+    end: string;
+};
+
+export type BookingDetail = {
+    dateSelected: DateSelected;
+    peopleCount: number;
+};
+
+export type ChargeDetail = {
+    charge: number;
+    tax: number;
+    Total: number;
+};
+
+export type CheckoutRequest = {
+    workspace: WorkspaceDetails;
+    bookingDetail: BookingDetail;
+    chargeDetail: ChargeDetail;
+    domain: string;
+};

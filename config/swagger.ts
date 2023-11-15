@@ -164,7 +164,92 @@ export const options = {
                             items: {'$ref': '#/components/schemas/Workspace'}
                         }
                     }
-                }
+                },
+                WorkspaceDetails: {
+                    type: "object",
+                    properties: {
+                        id: {
+                            type: "integer"
+                        },
+                        type: {
+                            type: "string",
+                            enum: ["MULTIPLE_DAYS", "ONE_DAY"]
+                        }
+                    },
+                    required: ["id", "type"]
+                },
+                DateSelected: {
+                    type: "object",
+                    properties: {
+                        start: {
+                            type: "string",
+                            format: "date"
+                        },
+                        end: {
+                            type: "string",
+                            format: "date"
+                        }
+                    },
+                    required: ["start", "end"]
+                },
+                BookingDetail: {
+                    type: "object",
+                    properties: {
+                        dateSelected: {
+                            $ref: "#/components/schemas/DateSelected"
+                        },
+                        peopleCount: {
+                            type: "integer"
+                        }
+                    },
+                    required: ["dateSelected", "peopleCount"]
+                },
+                ChargeDetail: {
+                    type: "object",
+                    properties: {
+                        charge: {
+                            type: "number"
+                        },
+                        tax: {
+                            type: "number"
+                        },
+                        Total: {
+                            type: "number"
+                        }
+                    },
+                    required: ["charge", "tax", "Total"]
+                },
+                CheckoutRequest: {
+                    type: "object",
+                    properties: {
+                        workspace: {
+                            $ref: "#/components/schemas/WorkspaceDetails"
+                        },
+                        bookingDetail: {
+                            $ref: "#/components/schemas/BookingDetail"
+                        },
+                        chargeDetail: {
+                            $ref: "#/components/schemas/ChargeDetail"
+                        }
+                    },
+                    required: ["workspace", "bookingDetail", "chargeDetail"]
+                },
+                CheckoutResponse: {
+                    type: "object",
+                    properties: {
+                        success: {
+                            type: "boolean"
+                        },
+                        data: {
+                            type: "object",
+                            properties: {
+                                url: {
+                                    type: "string"
+                                }
+                            }
+                        }
+                    }
+                },
             }
         },
         servers: [

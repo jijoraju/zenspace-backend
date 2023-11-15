@@ -1,13 +1,21 @@
 import {Request, Response} from "express";
 import {$Enums, Booking, PrismaClient} from "@prisma/client";
-import {WorkspaceFull, WorkSpaceWithBookings} from "../types/types";
+import {
+    BookingDetail, ChargeDetail,
+    CheckoutRequest, WorkspaceDetails,
+    WorkspaceFull,
+    WorkSpaceWithBookings,
+    WorkSpaceWithOnlyBookings
+} from "../types/types";
 import Stripe from "stripe";
 
 import WorkspaceType = $Enums.WorkspaceType;
 
 const prisma: PrismaClient = new PrismaClient();
 
+const DOMAIN_URL: string = process.env.DOMAIN_URL || '';
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || '';
+
 const stripe: Stripe = new Stripe(STRIPE_SECRET_KEY, {
     apiVersion: "2023-10-16",
     typescript: true,
@@ -229,40 +237,101 @@ export const getWorkspaceById = async (req: Request, res: Response) => {
 }
 
 
-const YOUR_DOMAIN = 'http://127.0.0.1:5173';
 export const checkout = async (req: Request, res: Response) => {
     try {
-        const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card'],
-            line_items: [{
-                price_data: {
-                    currency: 'cad',
-                    product_data: {
-                        name: 'Custom Charge',
-                    },
-                    unit_amount: 200,
-                },
-                quantity: 1,
-            }],
-            mode: 'payment',
-            success_url: `${YOUR_DOMAIN}/checkout?result=success&session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${YOUR_DOMAIN}/checkout?result=cancel&session_id={CHECKOUT_SESSION_ID}`,
+
+        if (!DOMAIN_URL) return res.status(500).json({ error: 'Invalid domain payment cannot process' });
+
+        const checkoutData: CheckoutRequest = req.body;
+        const bookingDetails: BookingDetail = checkoutData.bookingDetail;
+        const chargeDetail: ChargeDetail = checkoutData.chargeDetail;
+        const workspaceDetails : WorkspaceDetails = checkoutData.workspace;
+
+        if (!workspaceDetails.id) return res.status(404).json({ error: 'Invalid workspace' });
+
+        const workspace = await prisma.workspace.findUnique({
+            where: { workspace_id: workspaceDetails.id },
+            include: { bookings: true }
         });
 
-        if (session.url) {
-            return res.status(200).json({
-                success: true,
-                data: {
-                    url: session.url
-                }
-            });
-        } else {
-            return res.status(500).json({ error: 'Failed to create Stripe session' });
+        if (!workspace) {
+            return res.status(404).json({ error: 'Workspace not found' });
         }
+
+        const isAvailable: Boolean = checkAvailability(
+            workspace,
+            bookingDetails.dateSelected.start,
+            bookingDetails.dateSelected.end,
+            bookingDetails.peopleCount,
+            workspace.workspace_type
+        );
+
+        if (!isAvailable) {
+            return res.status(400).json({ error: 'No vacancy available for the selected criteria' });
+        }
+
+        const { productName, prodDesc, totalAmount } = getPaymentData(workspace, bookingDetails, chargeDetail);
+
+        const session = await createCheckoutSession(productName, prodDesc, totalAmount);
+        return session.url
+            ? res.status(200).json({ success: true, data: { url: session.url } })
+            : res.status(500).json({ error: 'Failed to create Stripe session' });
+
     } catch (error) {
         console.error(error);
-        return res.status(500).json({error: 'Internal server error'});
+        return res.status(500).json({ error: 'Internal Server error' });
     }
+};
+
+function getPaymentData(workspace: WorkSpaceWithOnlyBookings, bookingDetail: BookingDetail, chargeDetail: ChargeDetail) {
+    const productName = `Booking for ${workspace.workspace_type}`;
+    const prodDesc = workspace.workspace_type === 'ONE_DAY'
+        ? `Date: ${bookingDetail.dateSelected.start}, Number of Persons: ${bookingDetail.peopleCount}`
+        : `Dates: ${bookingDetail.dateSelected.start} to ${bookingDetail.dateSelected.end}, Number of Persons: ${bookingDetail.peopleCount}`;
+
+    const amount = workspace.price_per_day * bookingDetail.peopleCount;
+    const taxAmount = amount * 0.13;
+    const totalAmount = amount + taxAmount;
+
+    if (amount !== chargeDetail.charge || taxAmount !== chargeDetail.tax || totalAmount !== chargeDetail.Total) {
+        throw new Error("Price mismatch");
+    }
+    return { productName, prodDesc, totalAmount };
+}
+
+async function createCheckoutSession(productName: string, prodDesc: string, totalAmount: number) {
+    return await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [{
+            price_data: {
+                currency: 'cad',
+                product_data: { name: productName, description: prodDesc },
+                unit_amount: totalAmount,
+            },
+            quantity: 1,
+        }],
+        mode: 'payment',
+        success_url: `${DOMAIN_URL}/checkout?result=success&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${DOMAIN_URL}/checkout?result=cancel&session_id={CHECKOUT_SESSION_ID}`,
+    });
+}
+
+function checkAvailability(workspace: WorkSpaceWithOnlyBookings, startDate: string, endDate: string, noOfPeople: number, workspaceType: WorkspaceType): boolean {
+    let bookedSpaces = spacesBooked(workspace.bookings, (booking: Booking) => {
+        const bookingStart = new Date(booking.start_date);
+        const bookingEnd = new Date(booking.end_date);
+        const requestedStart = new Date(startDate);
+        const requestedEnd = new Date(endDate);
+
+        if (workspaceType === WorkspaceType.ONE_DAY) {
+            return requestedStart.toDateString() === bookingStart.toDateString();
+        } else {
+            return bookingStart < requestedEnd && bookingEnd > requestedStart;
+        }
+    });
+
+    const availableSpaces = workspace.no_of_spaces - bookedSpaces;
+    return availableSpaces >= noOfPeople;
 }
 
 export const successTest = async (req: Request, res: Response) => {

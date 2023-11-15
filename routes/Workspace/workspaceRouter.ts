@@ -219,7 +219,49 @@ workspaceRouter.get("/workspace/search", searchWorkspaces);
  */
 workspaceRouter.get("/workspace/:workspaceId", getWorkspaceById);
 
+/**
+ * @swagger
+ * /checkout:
+ *   post:
+ *     summary: Process a workspace booking checkout
+ *     description: Creates a Stripe checkout session for booking a workspace. Validates workspace availability, calculates the total cost, and returns a session URL for payment.
+ *     tags:
+ *       - Checkout
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CheckoutRequest'
+ *     responses:
+ *       200:
+ *         description: Successful response with the URL for the Stripe checkout session.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/CheckoutResponse'
+ *       400:
+ *         description: No vacancy available for the selected criteria or invalid data in request.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GenericErrorResponse'
+ *       404:
+ *         description: Workspace not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GenericErrorResponse'
+ *       500:
+ *         description: Internal server error or invalid domain configuration.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GenericErrorResponse'
+ */
 workspaceRouter.post('/checkout', checkout)
+
+
 workspaceRouter.get('/test-success/:sessionId', successTest)
 
 export default workspaceRouter;
