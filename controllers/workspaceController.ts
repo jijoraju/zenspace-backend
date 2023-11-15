@@ -285,21 +285,34 @@ export const checkout = async (req: Request, res: Response) => {
 
 function getPaymentData(workspace: WorkSpaceWithOnlyBookings, bookingDetail: BookingDetail, chargeDetail: ChargeDetail) {
     const productName = `Booking for ${workspace.workspace_type}`;
+    const startDate = new Date(bookingDetail.dateSelected.start);
+    const endDate = new Date(bookingDetail.dateSelected.end);
     const prodDesc = workspace.workspace_type === 'ONE_DAY'
         ? `Date: ${bookingDetail.dateSelected.start}, Number of Persons: ${bookingDetail.peopleCount}`
         : `Dates: ${bookingDetail.dateSelected.start} to ${bookingDetail.dateSelected.end}, Number of Persons: ${bookingDetail.peopleCount}`;
 
-    const amount = workspace.price_per_day * bookingDetail.peopleCount;
+    const daysDifference = calculateDaysDifference(startDate, endDate, workspace.workspace_type);
+    const amount = workspace.price_per_day * bookingDetail.peopleCount * daysDifference;
     const taxAmount = amount * 0.13;
     const totalAmount = amount + taxAmount;
 
-    console.log(`Amount = ${amount} and taxAmount = ${taxAmount} and totalAmount = ${totalAmount}`)
+    console.log(`Amount = ${amount}, Tax Amount = ${taxAmount}, Total Amount = ${totalAmount}`);
 
     if (amount !== chargeDetail.charge || taxAmount !== chargeDetail.tax || totalAmount !== chargeDetail.Total) {
         throw new Error("Price mismatch");
     }
     return { productName, prodDesc, totalAmount };
 }
+
+function calculateDaysDifference(startDate: Date, endDate: Date, workspaceType: WorkspaceType): number {
+    if (workspaceType === WorkspaceType.ONE_DAY) {
+        return 1;
+    } else {
+        const timeDiff = endDate.getTime() - startDate.getTime();
+        return Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1; // +1 because it's inclusive of both start and end days
+    }
+}
+
 
 async function createCheckoutSession(productName: string, prodDesc: string, totalAmount: number) {
     return await stripe.checkout.sessions.create({
