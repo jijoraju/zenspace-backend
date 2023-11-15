@@ -319,6 +319,12 @@ function calculateDaysDifference(startDate: Date, endDate: Date, workspaceType: 
 
 
 async function createCheckoutSession(productName: string, prodDesc: string, totalAmount: number) {
+
+    const successUrl = `${DOMAIN_URL}/checkout?result=success&session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${DOMAIN_URL}/checkout?result=cancel&session_id={CHECKOUT_SESSION_ID}`;
+
+    console.log(`Success url is : ${successUrl} and Cancel url is : ${cancelUrl}`);
+
     return await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         billing_address_collection: 'required',
@@ -331,8 +337,8 @@ async function createCheckoutSession(productName: string, prodDesc: string, tota
             quantity: 1,
         }],
         mode: 'payment',
-        success_url: `${DOMAIN_URL}/checkout?result=success&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${DOMAIN_URL}/checkout?result=cancel&session_id={CHECKOUT_SESSION_ID}`,
+        success_url: successUrl,
+        cancel_url: cancelUrl,
     });
 }
 
