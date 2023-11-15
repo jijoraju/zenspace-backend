@@ -317,6 +317,7 @@ function calculateDaysDifference(startDate: Date, endDate: Date, workspaceType: 
 async function createCheckoutSession(productName: string, prodDesc: string, totalAmount: number) {
     return await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
+        billing_address_collection: 'required',
         line_items: [{
             price_data: {
                 currency: 'cad',
