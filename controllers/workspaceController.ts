@@ -293,6 +293,8 @@ function getPaymentData(workspace: WorkSpaceWithOnlyBookings, bookingDetail: Boo
     const taxAmount = amount * 0.13;
     const totalAmount = amount + taxAmount;
 
+    console.log(`Amount = ${amount} and taxAmount = ${taxAmount} and totalAmount = ${totalAmount}`)
+
     if (amount !== chargeDetail.charge || taxAmount !== chargeDetail.tax || totalAmount !== chargeDetail.Total) {
         throw new Error("Price mismatch");
     }
