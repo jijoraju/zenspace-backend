@@ -247,8 +247,8 @@ export const checkout = async (req: Request, res: Response) => {
         const chargeDetail: ChargeDetail = checkoutData.chargeDetail;
         const workspaceDetails : WorkspaceDetails = checkoutData.workspace;
 
-        if(checkoutData.domain) {
-            DOMAIN_URL = checkoutData.domain;
+        if(checkoutData.domain && checkoutData.domain.includes('127.0.0.1:5173')) {
+            DOMAIN_URL = 'http://127.0.0.1:5173'
         }
 
         if (!workspaceDetails.id) return res.status(404).json({ error: 'Invalid workspace' });

@@ -18,6 +18,7 @@ const allowedOrigins: string[] = [
     'https://zenspace-frontend.onrender.com',
     'http://192.168.1.100:8888',
     'http://192.168.1.100:8889',
+    'http://localhost:4000',
     'https://checkout.stripe.com'];
 
 const corsOptions: cors.CorsOptions = {
