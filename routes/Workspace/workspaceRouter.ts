@@ -2,7 +2,12 @@ import express, {Router} from "express";
 import passport from "passport";
 import {checkUserRole} from "../../middlewares/authorization";
 import {findAllLocations, findLocationByName} from "../../controllers/locationController";
-import {checkout, getWorkspaceById, searchWorkspaces, successTest} from "../../controllers/workspaceController";
+import {
+    checkout,
+    confirmBooking,
+    getWorkspaceById,
+    searchWorkspaces,
+} from "../../controllers/workspaceController";
 
 
 const workspaceRouter: Router = express.Router();
@@ -259,10 +264,10 @@ workspaceRouter.get("/workspace/:workspaceId", getWorkspaceById);
  *             schema:
  *               $ref: '#/components/schemas/GenericErrorResponse'
  */
-workspaceRouter.post('/checkout', checkout)
+workspaceRouter.post('/checkout',passport.authenticate('jwt', {session: false}), checkout)
 
 
-workspaceRouter.get('/test-success/:sessionId', passport.authenticate('jwt', {session: false}), successTest)
+workspaceRouter.get('/confirm-booking/:sessionId', passport.authenticate('jwt', {session: false}), confirmBooking)
 
 export default workspaceRouter;
 

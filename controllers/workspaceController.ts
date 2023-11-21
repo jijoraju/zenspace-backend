@@ -1,15 +1,17 @@
 import {Request, Response} from "express";
 import {$Enums, Booking, PrismaClient} from "@prisma/client";
 import {
-    BookingDetail, ChargeDetail,
-    CheckoutRequest, WorkspaceDetails,
+    BookingDetail, BookingDetails,
+    ChargeDetail,
+    CheckoutRequest, ModifiedBookingResponse,
+    WorkspaceDetails,
     WorkspaceFull,
     WorkSpaceWithBookings,
     WorkSpaceWithOnlyBookings
 } from "../types/types";
 import Stripe from "stripe";
-
 import WorkspaceType = $Enums.WorkspaceType;
+import BookingStatus = $Enums.BookingStatus;
 
 const prisma: PrismaClient = new PrismaClient();
 
@@ -83,7 +85,13 @@ export const searchWorkspaces = async (req: Request, res: Response) => {
                 reviews: true,
                 workspaceAddress: true,
                 location: true,
-                bookings: true
+                bookings: {
+                    where: {
+                        status: {
+                            not: BookingStatus.CANCELLED
+                        }
+                    }
+                }
             }
         });
 
@@ -237,27 +245,42 @@ export const getWorkspaceById = async (req: Request, res: Response) => {
 }
 
 
-export const checkout = async (req: Request, res: Response) => {
+export const checkout = async (req: any, res: any) => {
     try {
 
-        if (!DOMAIN_URL) return res.status(500).json({ error: 'Invalid domain payment cannot process' });
+        if (!DOMAIN_URL) return res.status(500).json({error: 'Invalid domain payment cannot process'});
 
         const checkoutData: CheckoutRequest = req.body;
         const bookingDetails: BookingDetail = checkoutData.bookingDetail;
         const chargeDetail: ChargeDetail = checkoutData.chargeDetail;
-        const workspaceDetails : WorkspaceDetails = checkoutData.workspace;
+        const workspaceDetails: WorkspaceDetails = checkoutData.workspace;
+
+        if (!req.user) {
+            return res.status(401).json({error: 'User not authenticated'});
+        }
+
+        const userId: number = req.user.user_id;
+        const email: string = req.user.email;
 
         const LOCAL_URL = (checkoutData.domain && checkoutData.domain.includes('127.0.0.1:5173')) ? 'http://127.0.0.1:5173' : '';
 
-        if (!workspaceDetails.id) return res.status(404).json({ error: 'Invalid workspace' });
+        if (!workspaceDetails.id) return res.status(404).json({error: 'Invalid workspace'});
 
         const workspace = await prisma.workspace.findUnique({
-            where: { workspace_id: workspaceDetails.id },
-            include: { bookings: true }
+            where: {workspace_id: workspaceDetails.id},
+            include: {
+                bookings: {
+                    where: {
+                        status: {
+                            not: BookingStatus.CANCELLED
+                        }
+                    }
+                }
+            }
         });
 
         if (!workspace) {
-            return res.status(404).json({ error: 'Workspace not found' });
+            return res.status(404).json({error: 'Workspace not found'});
         }
 
         const isAvailable: Boolean = checkAvailability(
@@ -269,19 +292,53 @@ export const checkout = async (req: Request, res: Response) => {
         );
 
         if (!isAvailable) {
-            return res.status(400).json({ error: 'No vacancy available for the selected criteria' });
+            return res.status(400).json({error: 'No vacancy available for the selected criteria'});
         }
 
-        const { productName, prodDesc, totalAmount } = getPaymentData(workspace, bookingDetails, chargeDetail);
+        const {
+            productName,
+            prodDesc,
+            amount,
+            totalAmount,
+            taxAmount
+        } = getPaymentData(workspace, bookingDetails, chargeDetail);
 
-        const session = await createCheckoutSession(productName, prodDesc, totalAmount, LOCAL_URL);
+        const bookingReference = await generateUniqueBookingReference();
+
+        const newBooking = await prisma.booking.create({
+            data: {
+                workspace_id: checkoutData.workspace.id,
+                user_id: userId,
+                start_date: new Date(checkoutData.bookingDetail.dateSelected.start),
+                end_date: new Date(checkoutData.bookingDetail.dateSelected.end),
+                no_of_space: checkoutData.bookingDetail.peopleCount,
+                totalAmount: amount,
+                taxAmount: taxAmount,
+                grandTotal: totalAmount,
+                bookingReference,
+                status: 'PENDING',
+            }
+        });
+
+        console.log("Booking Reference is = {}", bookingReference);
+
+        const session = await createCheckoutSession(
+            productName,
+            prodDesc,
+            totalAmount,
+            LOCAL_URL,
+            workspaceDetails.id,
+            newBooking.bookingReference,
+            email
+        );
+
         return session.url
-            ? res.status(200).json({ success: true, data: { url: session.url } })
-            : res.status(500).json({ error: 'Failed to create Stripe session' });
+            ? res.status(200).json({success: true, data: {url: session.url}})
+            : res.status(500).json({error: 'Failed to create Stripe session'});
 
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ error: 'Internal Server error' });
+        return res.status(500).json({error: 'Internal Server error'});
     }
 };
 
@@ -303,7 +360,7 @@ function getPaymentData(workspace: WorkSpaceWithOnlyBookings, bookingDetail: Boo
     if (amount !== chargeDetail.charge || taxAmount !== chargeDetail.tax || totalAmount !== chargeDetail.Total) {
         throw new Error("Price mismatch");
     }
-    return { productName, prodDesc, totalAmount };
+    return {productName, prodDesc, amount, totalAmount, taxAmount};
 }
 
 function calculateDaysDifference(startDate: Date, endDate: Date, workspaceType: WorkspaceType): number {
@@ -316,12 +373,20 @@ function calculateDaysDifference(startDate: Date, endDate: Date, workspaceType: 
 }
 
 
-async function createCheckoutSession(productName: string, prodDesc: string, totalAmount: number, localUrl: string) {
+async function createCheckoutSession(
+    productName: string,
+    prodDesc: string,
+    totalAmount: number,
+    localUrl: string,
+    id: number,
+    bookingReference: string,
+    email: string
+) {
 
     const domain = localUrl != '' ? localUrl : DOMAIN_URL;
 
     const successUrl = `${domain}/checkout?result=success&session_id={CHECKOUT_SESSION_ID}`;
-    const cancelUrl = `${domain}/checkout?result=cancel&session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${domain}/checkout?result=cancel&workspaceId=${id}`;
 
     console.log(`Success url is : ${successUrl} and Cancel url is : ${cancelUrl}`);
 
@@ -331,7 +396,7 @@ async function createCheckoutSession(productName: string, prodDesc: string, tota
         line_items: [{
             price_data: {
                 currency: 'cad',
-                product_data: { name: productName, description: prodDesc },
+                product_data: {name: productName, description: prodDesc},
                 unit_amount: Math.round(totalAmount * 100),
             },
             quantity: 1,
@@ -339,6 +404,8 @@ async function createCheckoutSession(productName: string, prodDesc: string, tota
         mode: 'payment',
         success_url: successUrl,
         cancel_url: cancelUrl,
+        metadata: {bookingReference},
+        customer_email: email
     });
 }
 
@@ -360,11 +427,142 @@ function checkAvailability(workspace: WorkSpaceWithOnlyBookings, startDate: stri
     return availableSpaces >= noOfPeople;
 }
 
-export const successTest = async (req: Request, res: Response) => {
+export const confirmBooking = async (req: Request, res: Response) => {
     try {
         const session = await stripe.checkout.sessions.retrieve(req.params.sessionId);
-        res.json(session);
+        if (session.payment_status === 'paid' && session.metadata?.bookingReference) {
+            const bookingReference = session.metadata.bookingReference;
+
+            const workspaceInclude = {
+                workspacePhotos: true,
+                reviews: true,
+                workspaceAmenities: true,
+                workspaceAddress: true,
+                location: true,
+            };
+
+            // Update the booking status in the database
+            await prisma.booking.update({
+                where: { bookingReference: bookingReference },
+                data: {
+                    status: BookingStatus.CONFIRMED,
+                    stripeSessionId: session.id
+                }
+            });
+
+            console.log("Booking confirmed")
+
+            const updatedBooking: BookingDetails = await prisma.booking.findUnique({
+                where: { bookingReference: bookingReference },
+                include: {
+                    user: {
+                        select: {
+                            user_id: true,
+                            first_name: true,
+                            last_name: true,
+                            email: true,
+                            mobile: true
+                        }
+                    },
+                    workspace: {
+                        include: workspaceInclude
+                    }
+                }
+            });
+
+            console.log("Booking Retrieved")
+
+
+            if(updatedBooking == null) {
+                res.status(500).json({error: 'Unexpected error happened'});
+            }
+
+            const modifiedResponse: ModifiedBookingResponse = {
+                ...updatedBooking,
+                stripeSessionId: undefined
+            };
+
+
+            let paymentDetails = null;
+            if (session.payment_intent) {
+
+                const paymentIntent = await stripe.paymentIntents.retrieve(
+                    session.payment_intent as string, {
+                        expand: ['payment_method'],
+                    }
+                );
+
+                console.log("Payment retrieved")
+
+                console.log(paymentIntent);
+
+                if (paymentIntent != null) {
+                    const paymentMethod: Stripe.PaymentMethod = paymentIntent.payment_method as Stripe.PaymentMethod;
+
+                    if (paymentMethod && paymentMethod.card) {
+                        const maskedCardNumber = `************${paymentMethod.card.last4}`;
+                        paymentDetails = {
+                            billing_details: paymentMethod.billing_details,
+                            card_details: {
+                                type: paymentMethod.card.funding,
+                                brand: paymentMethod.card.brand,
+                                card_number: maskedCardNumber,
+                            },
+                        };
+                    }
+                }
+
+            }
+
+            console.log("Returning response")
+
+            return res.json({
+                success: true,
+                data: {
+                    bookingReference: updatedBooking?.bookingReference,
+                    bookingData : modifiedResponse,
+                    paymentData: paymentDetails
+                }
+            })
+        } else {
+            res.status(400).json({error: 'Payment not successful or booking reference not found'});
+        }
     } catch (error) {
+        console.error("Error in confirmBooking:", error);
         return res.status(500).json({error: 'Internal server error'});
+    }
+}
+
+function generateBookingReference(length = 6): string {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
+}
+
+async function generateUniqueBookingReference(length = 6) {
+    let unique = false;
+    let pnr: string = '';
+
+    try {
+        while (!unique) {
+            pnr = generateBookingReference(length);
+            const existingBooking = await prisma.booking.findUnique({
+                where: {bookingReference: pnr}
+            });
+
+            if (!existingBooking) {
+                unique = true;
+            }
+        }
+        if (!pnr) {
+            throw new Error("Error generating booking reference");
+        }
+        return pnr;
+    } catch (error) {
+        console.error("Error generating unique booking reference:", error);
+        throw new Error("Error generating booking reference");
     }
 }
