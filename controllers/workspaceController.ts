@@ -1,9 +1,10 @@
 import {Request, Response} from "express";
 import {$Enums, Booking, PrismaClient} from "@prisma/client";
 import {
-    BookingDetail, BookingDetails,
+    BookingDetail,
+    BookingDetails,
     ChargeDetail,
-    CheckoutRequest, ModifiedBookingResponse,
+    CheckoutRequest,
     WorkspaceDetails,
     WorkspaceFull,
     WorkSpaceWithBookings,
@@ -191,6 +192,30 @@ function spacesBooked(bookings: Booking[], conditionCheck: (booking: Booking) =>
     }, 0);
 }
 
+function getWorkspaceWithDetails(workspace: WorkspaceFull) {
+    if (workspace != null) {
+        // Calculating the average rating
+        const totalRating: number = workspace.reviews
+            .reduce((sum, review) => sum + review.rating, 0.0);
+        const avgRating: number = totalRating / workspace.reviews.length || 0.0;
+
+        const photoUrls: string[] = workspace.workspacePhotos.map(photo => photo.photo_url);
+        const amenitiesDescriptions = workspace.workspaceAmenities.map(amenity => amenity.amenity.description);
+
+        const {workspacePhotos, workspaceAmenities, ...workspaceWithAmenities} = workspace;
+
+        const modifiedWorkspace = {
+            ...workspaceWithAmenities,
+            amenities: amenitiesDescriptions,
+            avgRating,
+            photos: photoUrls
+        };
+        return modifiedWorkspace;
+    } else {
+        throw Error("Unable to get workspace details");
+    }
+}
+
 export const getWorkspaceById = async (req: Request, res: Response) => {
     const workspaceId: number = Number(req.params.workspaceId);
 
@@ -216,22 +241,7 @@ export const getWorkspaceById = async (req: Request, res: Response) => {
             return res.status(404).json({message: 'Workspace not found'});
         }
 
-        // Calculating the average rating
-        const totalRating: number = workspace.reviews
-            .reduce((sum, review) => sum + review.rating, 0.0);
-        const avgRating: number = totalRating / workspace.reviews.length || 0.0;
-
-        const photoUrls: string[] = workspace.workspacePhotos.map(photo => photo.photo_url);
-        const amenitiesDescriptions = workspace.workspaceAmenities.map(amenity => amenity.amenity.description);
-
-        const {workspacePhotos, workspaceAmenities, ...workspaceWithAmenities} = workspace;
-
-        const modifiedWorkspace = {
-            ...workspaceWithAmenities,
-            amenities: amenitiesDescriptions,
-            avgRating,
-            photos: photoUrls
-        };
+        const modifiedWorkspace = getWorkspaceWithDetails(workspace);
 
         return res.json({
             success: true,
@@ -443,7 +453,7 @@ export const confirmBooking = async (req: Request, res: Response) => {
 
             // Update the booking status in the database
             await prisma.booking.update({
-                where: { bookingReference: bookingReference },
+                where: {bookingReference: bookingReference},
                 data: {
                     status: BookingStatus.CONFIRMED,
                     stripeSessionId: session.id
@@ -453,7 +463,7 @@ export const confirmBooking = async (req: Request, res: Response) => {
             console.log("Booking confirmed")
 
             const updatedBooking: BookingDetails = await prisma.booking.findUnique({
-                where: { bookingReference: bookingReference },
+                where: {bookingReference: bookingReference},
                 include: {
                     user: {
                         select: {
@@ -465,8 +475,16 @@ export const confirmBooking = async (req: Request, res: Response) => {
                         }
                     },
                     workspace: {
-                        select: {
-                            workspace_id: true
+                        include: {
+                            reviews: true,
+                            workspaceAddress: true,
+                            location: true,
+                            workspaceAmenities: {
+                                include: {
+                                    amenity: true,
+                                },
+                            },
+                            workspacePhotos: true
                         }
                     }
                 }
@@ -475,15 +493,9 @@ export const confirmBooking = async (req: Request, res: Response) => {
             console.log("Booking Retrieved")
 
 
-            if(updatedBooking == null) {
-                res.status(500).json({error: 'Unexpected error happened'});
+            if (updatedBooking == null) {
+                throw Error('Unexpected error happened');
             }
-
-            const modifiedResponse: ModifiedBookingResponse = {
-                ...updatedBooking,
-                stripeSessionId: undefined
-            };
-
 
             let paymentDetails = null;
             if (session.payment_intent) {
@@ -516,13 +528,21 @@ export const confirmBooking = async (req: Request, res: Response) => {
 
             }
 
+            const modifiedWorkspace = getWorkspaceWithDetails(updatedBooking.workspace);
+
+            const modifiedResponse: any = {
+                ...updatedBooking,
+                workspace: modifiedWorkspace,
+                stripeSessionId: undefined
+            };
+
             console.log("Returning response")
 
             return res.json({
                 success: true,
                 data: {
                     bookingReference: updatedBooking?.bookingReference,
-                    bookingData : modifiedResponse,
+                    bookingData: modifiedResponse,
                     paymentData: paymentDetails
                 }
             })

@@ -274,7 +274,7 @@ export const options = {
                                         workspace_id: {type: "integer"},
                                         user_id: {type: "integer"},
                                         user: {$ref: "#/components/schemas/User"},
-                                        workspace: {$ref: "#/components/schemas/WorkspaceBooked"}
+                                        workspace: {$ref: "#/components/schemas/Workspace"}
                                     }
                                 },
                                 paymentData: {
@@ -304,7 +304,7 @@ export const options = {
                         workspace_id: {type: 'integer'}
                     }
                 },
-                billing_details: {
+                BillingDetails: {
                     type: "object",
                     properties: {
                         address: {
@@ -323,7 +323,7 @@ export const options = {
                         phone: { type: "string", nullable: true }
                     }
                 },
-                card_details: {
+                CardDetails: {
                     type: "object",
                     properties: {
                         type: { type: "string" },

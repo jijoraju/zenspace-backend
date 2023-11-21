@@ -51,8 +51,16 @@ export type BookingDetails = (Prisma.BookingGetPayload<{
             };
         },
         workspace: {
-            select: {
-                workspace_id: true
+            include: {
+                reviews: true,
+                workspaceAddress: true,
+                location: true,
+                workspaceAmenities: {
+                    include: {
+                        amenity: true,
+                    },
+                },
+                workspacePhotos: true
             }
         }
     }
@@ -105,8 +113,6 @@ export type CheckoutRequest = {
     chargeDetail: ChargeDetail;
     domain: string;
 };
-
-export type ModifiedBookingResponse = Omit<BookingDetails, 'stripeSessionId'>;
 
 
 
