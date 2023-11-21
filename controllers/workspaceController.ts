@@ -315,12 +315,17 @@ export const checkout = async (req: any, res: any) => {
 
         const bookingReference = await generateUniqueBookingReference();
 
+        if (workspace.workspace_type === WorkspaceType.ONE_DAY) {
+
+        }
+        const end_date = workspace.workspace_type === WorkspaceType.ONE_DAY ? '' : new Date(checkoutData.bookingDetail.dateSelected.end);
+
         const newBooking = await prisma.booking.create({
             data: {
                 workspace_id: checkoutData.workspace.id,
                 user_id: userId,
                 start_date: new Date(checkoutData.bookingDetail.dateSelected.start),
-                end_date: new Date(checkoutData.bookingDetail.dateSelected.end),
+                end_date: end_date,
                 no_of_space: checkoutData.bookingDetail.peopleCount,
                 totalAmount: amount,
                 taxAmount: taxAmount,
