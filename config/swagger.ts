@@ -250,6 +250,87 @@ export const options = {
                         }
                     }
                 },
+                ConfirmBookingResponse: {
+                    type: "object",
+                    properties: {
+                        success: {type: "boolean"},
+                        data: {
+                            type: "object",
+                            properties: {
+                                bookingReference: {type: "string"},
+                                bookingData: {
+                                    type: "object",
+                                    properties: {
+                                        booking_id: {type: "integer"},
+                                        bookingReference: {type: "string"},
+                                        start_date: {type: "string", format: "date-time"},
+                                        end_date: {type: "string", format: "date-time"},
+                                        booking_date: {type: "string", format: "date-time"},
+                                        no_of_space: {type: "integer"},
+                                        totalAmount: {type: "number"},
+                                        taxAmount: {type: "number"},
+                                        grandTotal: {type: "number"},
+                                        status: {type: "string"},
+                                        workspace_id: {type: "integer"},
+                                        user_id: {type: "integer"},
+                                        user: {$ref: "#/components/schemas/User"},
+                                        workspace: {$ref: "#/components/schemas/WorkspaceBooked"}
+                                    }
+                                },
+                                paymentData: {
+                                    type: "object",
+                                    properties: {
+                                        billing_details: {$ref: "#/components/schemas/BillingDetails"},
+                                        card_details: {$ref: "#/components/schemas/CardDetails"}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                User: {
+                    type: "object",
+                    properties: {
+                        user_id: {type: "integer"},
+                        first_name: {type: "string"},
+                        last_name: {type: "string"},
+                        email: {type: "string"},
+                        mobile: {type: "string", nullable: true}
+                    }
+                },
+                WorkspaceBooked: {
+                    type: 'object',
+                    properties: {
+                        workspace_id: {type: 'integer'}
+                    }
+                },
+                billing_details: {
+                    type: "object",
+                    properties: {
+                        address: {
+                            type: "object",
+                            properties: {
+                                city: { type: "string" },
+                                country: { type: "string" },
+                                line1: { type: "string" },
+                                line2: { type: "string" },
+                                postal_code: { type: "string" },
+                                state: { type: "string" }
+                            }
+                        },
+                        email: { type: "string" },
+                        name: { type: "string" },
+                        phone: { type: "string", nullable: true }
+                    }
+                },
+                card_details: {
+                    type: "object",
+                    properties: {
+                        type: { type: "string" },
+                        brand: { type: "string" },
+                        card_number: { type: "string" }
+                    }
+                }
             }
         },
         servers: [

@@ -266,7 +266,41 @@ workspaceRouter.get("/workspace/:workspaceId", getWorkspaceById);
  */
 workspaceRouter.post('/checkout',passport.authenticate('jwt', {session: false}), checkout)
 
-
+/**
+ * @swagger
+ * /confirmBooking/{sessionId}:
+ *   post:
+ *     summary: Confirm a booking
+ *     description: Confirms a booking after successful payment processing using the Stripe session ID.
+ *     tags:
+ *       - Booking
+ *     parameters:
+ *       - in: path
+ *         name: sessionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Stripe session ID for the payment.
+ *     responses:
+ *       200:
+ *         description: Booking successfully confirmed.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ConfirmBookingResponse'
+ *       400:
+ *         description: Payment not successful or booking reference not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GenericResponse'
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GenericResponse'
+ */
 workspaceRouter.get('/confirm-booking/:sessionId', passport.authenticate('jwt', {session: false}), confirmBooking)
 
 export default workspaceRouter;

@@ -465,7 +465,9 @@ export const confirmBooking = async (req: Request, res: Response) => {
                         }
                     },
                     workspace: {
-                        include: workspaceInclude
+                        select: {
+                            workspace_id: true
+                        }
                     }
                 }
             });

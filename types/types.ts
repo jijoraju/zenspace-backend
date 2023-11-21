@@ -51,12 +51,8 @@ export type BookingDetails = (Prisma.BookingGetPayload<{
             };
         },
         workspace: {
-            include: {
-                workspacePhotos: true,
-                reviews: true,
-                workspaceAmenities: true,
-                workspaceAddress: true,
-                location: true,
+            select: {
+                workspace_id: true
             }
         }
     }
