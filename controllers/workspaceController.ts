@@ -119,7 +119,7 @@ export const searchWorkspaces = async (req: Request, res: Response) => {
                 bookedSpaces = spacesBooked(workspace.bookings, (booking: Booking) => {
                     if (fromDate && toDate) {
                         const bookingStart = new Date(booking.start_date);
-                        const bookingEnd = new Date(booking.end_date);
+                        const bookingEnd = booking.end_date ? new Date(booking.end_date) : bookingStart;
                         return Boolean(bookingStart < new Date(toDate) && bookingEnd > new Date(fromDate));
                     } else {
                         return false;
@@ -318,22 +318,40 @@ export const checkout = async (req: any, res: any) => {
         if (workspace.workspace_type === WorkspaceType.ONE_DAY) {
 
         }
-        const end_date = workspace.workspace_type === WorkspaceType.ONE_DAY ? '' : new Date(checkoutData.bookingDetail.dateSelected.end);
 
-        const newBooking = await prisma.booking.create({
-            data: {
-                workspace_id: checkoutData.workspace.id,
-                user_id: userId,
-                start_date: new Date(checkoutData.bookingDetail.dateSelected.start),
-                end_date: end_date,
-                no_of_space: checkoutData.bookingDetail.peopleCount,
-                totalAmount: amount,
-                taxAmount: taxAmount,
-                grandTotal: totalAmount,
-                bookingReference,
-                status: 'PENDING',
-            }
-        });
+        let newBooking;
+        if(workspace.workspace_type === WorkspaceType.ONE_DAY){
+            newBooking = await prisma.booking.create({
+                data: {
+                    workspace_id: checkoutData.workspace.id,
+                    user_id: userId,
+                    start_date: new Date(checkoutData.bookingDetail.dateSelected.start),
+                    no_of_space: checkoutData.bookingDetail.peopleCount,
+                    totalAmount: amount,
+                    taxAmount: taxAmount,
+                    grandTotal: totalAmount,
+                    bookingReference,
+                    status: 'PENDING',
+                }
+            });
+        } else {
+            newBooking = await prisma.booking.create({
+                data: {
+                    workspace_id: checkoutData.workspace.id,
+                    user_id: userId,
+                    start_date: new Date(checkoutData.bookingDetail.dateSelected.start),
+                    end_date: new Date(checkoutData.bookingDetail.dateSelected.end),
+                    no_of_space: checkoutData.bookingDetail.peopleCount,
+                    totalAmount: amount,
+                    taxAmount: taxAmount,
+                    grandTotal: totalAmount,
+                    bookingReference,
+                    status: 'PENDING',
+                }
+            });
+        }
+
+
 
         console.log("Booking Reference is = {}", bookingReference);
 
@@ -427,13 +445,13 @@ async function createCheckoutSession(
 function checkAvailability(workspace: WorkSpaceWithOnlyBookings, startDate: string, endDate: string, noOfPeople: number, workspaceType: WorkspaceType): boolean {
     let bookedSpaces = spacesBooked(workspace.bookings, (booking: Booking) => {
         const bookingStart = new Date(booking.start_date);
-        const bookingEnd = new Date(booking.end_date);
         const requestedStart = new Date(startDate);
-        const requestedEnd = new Date(endDate);
 
         if (workspaceType === WorkspaceType.ONE_DAY) {
             return requestedStart.toDateString() === bookingStart.toDateString();
         } else {
+            const bookingEnd = booking.end_date ? new Date(booking.end_date) : bookingStart;
+            const requestedEnd = new Date(endDate);
             return bookingStart < requestedEnd && bookingEnd > requestedStart;
         }
     });

@@ -93,7 +93,7 @@ model Booking {
   booking_id       Int            @id @default(autoincrement())
   bookingReference String         @unique
   start_date       DateTime
-  end_date         DateTime
+  end_date         DateTime?
   booking_date     DateTime       @default(now())
   no_of_space      Int
   totalAmount      Float
