@@ -578,6 +578,54 @@ export const confirmBooking = async (req: Request, res: Response) => {
     }
 }
 
+export const getUserBookings = async (req: any, res: Response) => {
+    try {
+        const userId = req.user.user_id;
+        const currentDate = new Date();
+
+        const bookings = await prisma.booking.findMany({
+            where: { user_id: userId },
+            include: {
+                workspace: true,
+            }
+        });
+
+        const upcomingBookings = bookings.filter((booking: Booking) =>
+            new Date(booking.start_date) >= currentDate
+        ).map(booking => ({
+            bookingReference: booking.bookingReference,
+            startDate: booking.start_date,
+            endDate: booking.end_date,
+            numberOfSpaces: booking.no_of_space,
+            workspaceType: booking.workspace.workspace_type,
+            status: booking.status
+        }));
+
+        const pastBookings = bookings.filter((booking: Booking) =>
+            new Date(booking.start_date) < currentDate
+        ).map(booking => ({
+            bookingReference: booking.bookingReference,
+            startDate: booking.start_date,
+            endDate: booking.end_date,
+            numberOfSpaces: booking.no_of_space,
+            workspaceType: booking.workspace.workspace_type,
+            status: booking.status
+        }));
+
+        return res.json({
+            success: true,
+            data: {
+                upcoming: upcomingBookings,
+                past: pastBookings
+            }
+        });
+
+    } catch (error) {
+        console.error("Error in getUserBookings:", error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
 function generateBookingReference(length = 6): string {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let result = '';

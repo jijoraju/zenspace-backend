@@ -4,7 +4,7 @@ import {checkUserRole} from "../../middlewares/authorization";
 import {findAllLocations, findLocationByName} from "../../controllers/locationController";
 import {
     checkout,
-    confirmBooking,
+    confirmBooking, getUserBookings,
     getWorkspaceById,
     searchWorkspaces,
 } from "../../controllers/workspaceController";
@@ -302,6 +302,39 @@ workspaceRouter.post('/checkout',passport.authenticate('jwt', {session: false}),
  *               $ref: '#/components/schemas/GenericResponse'
  */
 workspaceRouter.get('/confirm-booking/:sessionId', passport.authenticate('jwt', {session: false}), confirmBooking)
+
+/**
+ * @swagger
+ * /booking-summery:
+ *   get:
+ *     security:
+ *       - JWT: []
+ *     summary: Retrieve bookings for the logged-in user
+ *     description: Retrieves all bookings made by the logged-in user, categorized into upcoming and past bookings.
+ *     tags:
+ *       - Booking
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved bookings.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UserBookingsResponse'
+ *       401:
+ *         description: Unauthorized access.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GenericResponse'
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GenericResponse'
+ */
+workspaceRouter.get('/booking-summery', passport.authenticate('jwt', { session: false }), getUserBookings);
+
 
 export default workspaceRouter;
 

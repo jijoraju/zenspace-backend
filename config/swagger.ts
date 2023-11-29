@@ -330,7 +330,43 @@ export const options = {
                         brand: { type: "string" },
                         card_number: { type: "string" }
                     }
-                }
+                },
+                UserBookingsResponse: {
+                    type: 'object',
+                    properties: {
+                        success: {
+                            type: 'boolean'
+                        },
+                        data: {
+                            type: 'object',
+                            properties: {
+                                upcoming: {
+                                    type: 'array',
+                                    items: {
+                                        $ref: '#/components/schemas/BookingHistoryDetail'
+                                    }
+                                },
+                                past: {
+                                    type: 'array',
+                                    items: {
+                                        $ref: '#/components/schemas/BookingHistoryDetail'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                BookingHistoryDetail: {
+                    type: 'object',
+                    properties: {
+                        bookingReference: { type: 'string' },
+                        startDate: { type: 'string', format: 'date-time' },
+                        endDate: { type: 'string', format: 'date-time' },
+                        numberOfSpaces: { type: 'integer' },
+                        workspaceType: { type: 'string' },
+                        status: { type: 'string' }
+                    }
+                },
             }
         },
         servers: [
