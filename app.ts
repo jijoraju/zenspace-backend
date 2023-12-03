@@ -16,6 +16,7 @@ const allowedOrigins: string[] = [
     'http://localhost:5173',
     "http://127.0.0.1:5173",
     'https://zenspace-frontend.onrender.com',
+    'https://zenspace-backend.onrender.com',
     'http://192.168.1.100:8888',
     'http://192.168.1.100:8889',
     'http://localhost:4000',
