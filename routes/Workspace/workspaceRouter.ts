@@ -4,7 +4,7 @@ import {checkUserRole} from "../../middlewares/authorization";
 import {findAllLocations, findLocationByName} from "../../controllers/locationController";
 import {
     checkout,
-    confirmBooking, getUserBookings,
+    confirmBooking, getUserBookingDetails, getUserBookings,
     getWorkspaceById,
     searchWorkspaces,
 } from "../../controllers/workspaceController";
@@ -334,6 +334,50 @@ workspaceRouter.get('/confirm-booking/:sessionId', passport.authenticate('jwt', 
  *               $ref: '#/components/schemas/GenericResponse'
  */
 workspaceRouter.get('/booking-summery', passport.authenticate('jwt', { session: false }), getUserBookings);
+
+
+/**
+ * @swagger
+ * /booking-summary/{bookingReference}:
+ *   get:
+ *     security:
+ *       - JWT: []
+ *     summary: Retrieve specific booking details for the logged-in user
+ *     description: Retrieves details of a specific booking made by the logged-in user by the given booking reference.
+ *     tags:
+ *       - Booking
+ *     parameters:
+ *       - in: path
+ *         name: bookingReference
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The booking reference number
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved booking details.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UserBookingsResponse'
+ *       401:
+ *         description: Unauthorized access.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GenericResponse'
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GenericResponse'
+ */
+workspaceRouter.get(
+    '/booking-summary/:bookingReference',
+    passport.authenticate('jwt', { session: false }),
+    getUserBookingDetails
+);
 
 
 export default workspaceRouter;

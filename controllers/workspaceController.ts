@@ -484,87 +484,13 @@ export const confirmBooking = async (req: Request, res: Response) => {
             });
 
             console.log("Booking confirmed")
-
-            const updatedBooking: BookingDetails = await prisma.booking.findUnique({
-                where: {bookingReference: bookingReference},
-                include: {
-                    user: {
-                        select: {
-                            user_id: true,
-                            first_name: true,
-                            last_name: true,
-                            email: true,
-                            mobile: true
-                        }
-                    },
-                    workspace: {
-                        include: {
-                            reviews: true,
-                            workspaceAddress: true,
-                            location: true,
-                            workspaceAmenities: {
-                                include: {
-                                    amenity: true,
-                                },
-                            },
-                            workspacePhotos: true
-                        }
-                    }
-                }
-            });
-
-            console.log("Booking Retrieved")
-
-
-            if (updatedBooking == null) {
-                throw Error('Unexpected error happened');
-            }
-
-            let paymentDetails = null;
-            if (session.payment_intent) {
-
-                const paymentIntent = await stripe.paymentIntents.retrieve(
-                    session.payment_intent as string, {
-                        expand: ['payment_method'],
-                    }
-                );
-
-                console.log("Payment retrieved")
-
-                console.log(paymentIntent);
-
-                if (paymentIntent != null) {
-                    const paymentMethod: Stripe.PaymentMethod = paymentIntent.payment_method as Stripe.PaymentMethod;
-
-                    if (paymentMethod && paymentMethod.card) {
-                        const maskedCardNumber = `************${paymentMethod.card.last4}`;
-                        paymentDetails = {
-                            billing_details: paymentMethod.billing_details,
-                            card_details: {
-                                type: paymentMethod.card.funding,
-                                brand: paymentMethod.card.brand,
-                                card_number: maskedCardNumber,
-                            },
-                        };
-                    }
-                }
-
-            }
-
-            const modifiedWorkspace = getWorkspaceWithDetails(updatedBooking.workspace);
-
-            const modifiedResponse: any = {
-                ...updatedBooking,
-                workspace: modifiedWorkspace,
-                stripeSessionId: undefined
-            };
-
+            const {modifiedResponse, paymentDetails} = await getBookingDetailsByReference(bookingReference, session);
             console.log("Returning response")
 
             return res.json({
                 success: true,
                 data: {
-                    bookingReference: updatedBooking?.bookingReference,
+                    bookingReference: bookingReference,
                     bookingData: modifiedResponse,
                     paymentData: paymentDetails
                 }
@@ -577,6 +503,91 @@ export const confirmBooking = async (req: Request, res: Response) => {
         return res.status(500).json({error: 'Internal server error'});
     }
 }
+
+async function getBookingDetailsByReference(bookingReference: string, session: Stripe.Response<any> | null){
+
+    const updatedBooking: BookingDetails = await prisma.booking.findUnique({
+        where: {bookingReference: bookingReference},
+        include: {
+            user: {
+                select: {
+                    user_id: true,
+                    first_name: true,
+                    last_name: true,
+                    email: true,
+                    mobile: true
+                }
+            },
+            workspace: {
+                include: {
+                    reviews: true,
+                    workspaceAddress: true,
+                    location: true,
+                    workspaceAmenities: {
+                        include: {
+                            amenity: true,
+                        },
+                    },
+                    workspacePhotos: true
+                }
+            }
+        }
+    });
+
+    console.log("Booking Retrieved")
+
+    if(session == null && updatedBooking?.stripeSessionId != null) {
+        session = await stripe.checkout.sessions.retrieve(updatedBooking.stripeSessionId);
+    }
+
+
+    if (updatedBooking == null) {
+        throw Error('Unexpected error happened');
+    }
+
+    let paymentDetails = null;
+    if (session?.payment_intent) {
+
+        const paymentIntent = await stripe.paymentIntents.retrieve(
+            session.payment_intent as string, {
+                expand: ['payment_method'],
+            }
+        );
+
+        console.log("Payment retrieved")
+
+        console.log(paymentIntent);
+
+        if (paymentIntent != null) {
+            const paymentMethod: Stripe.PaymentMethod = paymentIntent.payment_method as Stripe.PaymentMethod;
+
+            if (paymentMethod && paymentMethod.card) {
+                const maskedCardNumber = `************${paymentMethod.card.last4}`;
+                paymentDetails = {
+                    billing_details: paymentMethod.billing_details,
+                    card_details: {
+                        type: paymentMethod.card.funding,
+                        brand: paymentMethod.card.brand,
+                        card_number: maskedCardNumber,
+                    },
+                };
+            }
+        }
+
+    }
+
+    const modifiedWorkspace = getWorkspaceWithDetails(updatedBooking.workspace);
+
+    const modifiedResponse: any = {
+        ...updatedBooking,
+        workspace: modifiedWorkspace,
+        stripeSessionId: undefined
+    };
+
+    return { modifiedResponse, paymentDetails };
+}
+
+
 
 export const getUserBookings = async (req: any, res: Response) => {
     try {
@@ -625,6 +636,26 @@ export const getUserBookings = async (req: any, res: Response) => {
         return res.status(500).json({ error: 'Internal server error' });
     }
 };
+
+export const getUserBookingDetails = async (req: any, res: any)=> {
+    try {
+        const bookingReference = req.params.bookingReference;
+
+        const {modifiedResponse, paymentDetails} = await getBookingDetailsByReference(bookingReference, null);
+
+        return res.json({
+            success: true,
+            data: {
+                bookingReference: bookingReference,
+                bookingData: modifiedResponse,
+                paymentData: paymentDetails
+            }
+        });
+    }catch (error){
+        console.error("Error in getUserBookings:", error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+}
 
 function generateBookingReference(length = 6): string {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
