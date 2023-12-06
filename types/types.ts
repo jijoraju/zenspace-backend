@@ -36,6 +36,7 @@ export type WorkSpaceWithBookings = (Prisma.WorkspaceGetPayload<{
         workspaceAddress: true,
         location: true,
         bookings: true,
+        workspacePhotos: true
     }
 }>);
 

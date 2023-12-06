@@ -86,6 +86,7 @@ export const searchWorkspaces = async (req: Request, res: Response) => {
                 reviews: true,
                 workspaceAddress: true,
                 location: true,
+                workspacePhotos: true,
                 bookings: {
                     where: {
                         status: {
@@ -145,7 +146,8 @@ export const searchWorkspaces = async (req: Request, res: Response) => {
                 reviews: true,
                 workspaceAddress: true,
                 location: true,
-                bookings: true
+                bookings: true,
+                workspacePhotos: true
             },
             skip,
             take: pageSize,
@@ -161,6 +163,12 @@ export const searchWorkspaces = async (req: Request, res: Response) => {
              }) => otherProps
         );
 
+        const newWorkspaces = modifiedResponse.map(workspace => {
+            const photoUrls = workspace.workspacePhotos.map(photo => photo.photo_url);
+            return { ...workspace, photos: photoUrls };
+        });
+
+
         const totalPages: number = Math.ceil(totalCount / pageSize);
 
         return res.json({
@@ -173,7 +181,7 @@ export const searchWorkspaces = async (req: Request, res: Response) => {
                 sortBy: sort,
                 sortOrder: order
             },
-            data: modifiedResponse
+            data: newWorkspaces
         })
 
     } catch (error) {
