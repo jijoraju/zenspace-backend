@@ -165,9 +165,9 @@ export const searchWorkspaces = async (req: Request, res: Response) => {
 
         const newWorkspaces = modifiedResponse.map(workspace => {
             const photoUrls = workspace.workspacePhotos.map(photo => photo.photo_url);
-            return { ...workspace, photos: photoUrls };
+            const { workspacePhotos, ...rest } = workspace; // Destructure to separate workspacePhotos and the rest of the properties
+            return { ...rest, photos: photoUrls }; // Return a new object for each workspace without workspacePhotos
         });
-
 
         const totalPages: number = Math.ceil(totalCount / pageSize);
 
