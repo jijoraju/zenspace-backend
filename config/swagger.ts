@@ -55,6 +55,21 @@ export const options = {
                         }
                     }
                 },
+                ProfileResponse: {
+                    type: 'object',
+                    properties: {
+                        data: {
+                            type: 'object',
+                            properties: {
+                                user_id: {type: 'number'},
+                                email: {type: 'string'},
+                                firstname: {type: 'string'},
+                                lastname: {type: 'string'},
+                                role: {type: 'string'},
+                            }
+                        }
+                    }
+                },
                 GenericResponse: {
                     type: 'object',
                     properties: {
